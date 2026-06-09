@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>코치 스튜디오 · 작전판 + 훈련일정</title>
+<style>
+  :root{--bg:#ECEDF0;--bar:#FFFFFF;--bar2:#F1F2F4;--line:#E3E5E9;--txt:#16181C;--dim:#5C6068;--blue:#3a6df0;
+    font-family:-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',Roboto,sans-serif;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);}
+  body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
+  .appbar{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:8px 14px;
+    padding-top:max(8px,env(safe-area-inset-top));background:var(--bar);border-bottom:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.04);}
+  .brand{display:flex;flex-direction:column;justify-content:center;line-height:1;white-space:nowrap;color:var(--txt);}
+  .brand .l1{font-weight:800;font-size:14.5px;letter-spacing:.085em;}
+  .brand .l2{font-weight:800;font-size:14.5px;letter-spacing:.085em;color:var(--txt);margin-top:3px;}
+  .seg{display:flex;background:var(--bar2);border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px;}
+  .seg button{border:0;background:transparent;color:var(--dim);font-weight:600;font-size:13.5px;letter-spacing:-.1px;
+    padding:8px 16px;border-radius:9px;cursor:pointer;transition:.15s;white-space:nowrap;font-family:inherit;}
+  .seg button.on{background:#fff;color:var(--txt);box-shadow:0 1px 2px rgba(16,24,40,.08),0 2px 5px rgba(16,24,40,.06);}
+  .seg button:not(.on):hover{color:var(--txt);}
+  .hintbar{margin-left:auto;color:var(--dim);font-size:12px;font-weight:600;white-space:nowrap;}
+  @media (max-width:600px){.hintbar{display:none;}}
+  body.focus .appbar{display:none;}
+  .frames{flex:1 1 auto;position:relative;min-height:0;}
+  .frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:var(--bg);}
+  .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:14px;font-weight:600;}
+  /* ---- device preview toggle (desktop/tablet only) ---- */
+  .devtoggle{display:none;margin-left:auto;align-items:center;gap:2px;background:var(--bar2);border:1px solid var(--line);border-radius:10px;padding:3px;}
+  .devtoggle button{border:0;background:transparent;color:var(--dim);width:36px;height:30px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.1s;}
+  .devtoggle button.on{background:#fff;color:var(--txt);box-shadow:0 1px 2px rgba(16,24,40,.08),0 2px 5px rgba(16,24,40,.06);}
+  .devtoggle button:not(.on):hover{color:var(--txt);}
+  .devtoggle svg{width:17px;height:17px;display:block;}
+  @media (min-width:768px){.devtoggle{display:inline-flex;}}
+  /* ---- forced phone preview: center the active app in a phone column ---- */
+  body.force-phone .frames{background:#D4D7DD;display:flex;align-items:stretch;justify-content:center;padding:20px 0;}
+  body.force-phone .frames iframe{position:relative;inset:auto;width:392px;max-width:calc(100% - 24px);height:100%;
+    border-radius:30px;overflow:hidden;box-shadow:0 14px 44px rgba(16,24,40,.22),0 0 0 1px rgba(16,24,40,.07),inset 0 0 0 6px #fff;background:#fff;}
+  body.force-phone .hintbar{display:none;}
+  body.force-phone .loading{background:#D4D7DD;}
+</style>
+<style>@media print{.appbar{display:none!important}body{margin:0!important;background:#fff!important}.apps,#fBoard,#fProcess{position:static!important}iframe{border:0!important}}</style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand"><span class="l1">coach</span><span class="l2">studio</span></div>
+    <div class="seg" id="appSeg">
+      <button data-app="board" class="on">보드</button>
+      <button data-app="process">주기화</button>
+    </div>
+    <div class="hintbar" id="hintbar"></div>
+    <div class="devtoggle" id="devToggle" title="화면 미리보기 전환">
+      <button data-dev="auto" class="on" title="데스크톱·태블릿 (자동)" aria-label="데스크톱 보기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </button>
+      <button data-dev="phone" title="폰 화면" aria-label="폰 보기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="frames">
+    <div class="loading" id="loading">불러오는 중…</div>
+    <!-- 기능별 분리: 작전판 / 주기화를 각각 별도 파일로 로드 -->
+    <iframe id="fBoard" title="작전판" src="./board.html" allow="fullscreen" allowfullscreen></iframe>
+    <iframe id="fProcess" title="훈련 일정" src="./process.html" style="display:none"></iframe>
+  </div>
+
+  <script>
+  (function(){
+    var fBoard=document.getElementById('fBoard');
+    var fProcess=document.getElementById('fProcess');
+    var loading=document.getElementById('loading');
+    var seg=document.getElementById('appSeg');
+    var hints={board:'전술·세션을 그리고, 애니메이션·영상으로 내보내세요',
+               process:'경기일(MD) 기준 자동 주기화 · 훈련 블록에서 작전판 첨부 가능'};
+
+    fBoard.addEventListener('load',function(){loading.style.display='none';});
+
+    function showApp(app){
+      [].forEach.call(seg.children,function(x){x.classList.toggle('on',x.dataset.app===app);});
+      fBoard.style.display = app==='board'?'block':'none';
+      fProcess.style.display = app==='process'?'block':'none';
+      var h=document.getElementById('hintbar'); if(h) h.textContent=hints[app]||'';
+    }
+    showApp('board');
+    seg.addEventListener('click',function(e){var b=e.target.closest('button');if(b)showApp(b.dataset.app);});
+
+    // ---- device preview toggle ----
+    var devt=document.getElementById('devToggle');
+    function setDev(mode){
+      document.body.classList.toggle('force-phone', mode==='phone');
+      [].forEach.call(devt.children,function(x){x.classList.toggle('on',x.dataset.dev===mode);});
+      try{localStorage.setItem('cs_devmode',mode);}catch(_){}
+    }
+    devt.addEventListener('click',function(e){var b=e.target.closest('button');if(b)setDev(b.dataset.dev);});
+    var savedDev='auto'; try{savedDev=localStorage.getItem('cs_devmode')||'auto';}catch(_){}
+    setDev(savedDev);
+
+    // ---- bridge relay between the two apps ----
+    window.addEventListener('message',function(e){
+      var d=e.data||{};
+      if(d.source==='process' && d.type==='openBoard'){
+        showApp('board');
+        try{ fBoard.contentWindow.postMessage({type:'enterCapture',snap:d.snap},'*'); }catch(_){}
+      } else if(d.source==='board' && d.type==='capture'){
+        try{ fProcess.contentWindow.postMessage({type:'boardResult',thumb:d.thumb,snap:d.snap},'*'); }catch(_){}
+        showApp('process');
+      } else if(d.source==='board' && d.type==='captureCancel'){
+        showApp('process');
+      } else if(d.source==='board' && d.type==='sendToWeek'){
+        showApp('process');
+        try{ fProcess.contentWindow.postMessage({type:'importSession', session:d.session},'*'); }catch(_){}
+      } else if(d.source==='board' && d.type==='focusBoard'){
+        document.body.classList.toggle('focus', !!d.on);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
