@@ -10,6 +10,13 @@
 
 > 이 저장소는 **개발할 때마다 이 섹션에 내용을 누적 기록**합니다.
 
+### 2026-06-10 — 주기화 UI 다듬기
+- **드릴/훈련 편집 모달 스크롤**: 화면보다 긴 모달이 잘리던 문제 수정.
+  `.sheet` 에 `max-height:calc(100dvh-24px)` + `overflow-y:auto` → 뷰포트 안에서 내부 스크롤.
+- **"일정" 헤더 고정**: 투명 그라데이션 → 불투명 흰색 + 하단 보더로 셸 헤더 아래에 또렷이 고정.
+- **데스크탑 배경 구분**: 거터(뒷 배경)는 어둡게(`#D4D7DD`), 760px 콘텐츠 컬럼은 밝은 페이지 +
+  테두리·그림자로 프레이밍 → 흰 셸 헤더·하단 내비와 어울리게.
+
 ### 2026-06 — 스튜디오 메인 전환 · OAuth · Supabase 연동
 - **메인 = 스튜디오**: 루트(`/`)에서 React 셸([`StudioShell.jsx`](src/components/StudioShell.jsx))이
   작전판([`board.html`](public/studio/board.html))·주기화([`process.html`](public/studio/process.html))를

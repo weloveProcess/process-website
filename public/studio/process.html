@@ -72,8 +72,8 @@
   .foot{text-align:center;color:var(--text-3);font-size:11.5px;margin-top:16px;font-weight:300}
 
   /* ---------- TOP BAR ---------- */
-  .top{position:sticky;top:0;z-index:5;background:linear-gradient(var(--frame) 72%,transparent);
-    padding:22px 22px 12px;display:flex;align-items:center;justify-content:space-between}
+  .top{position:sticky;top:0;z-index:5;background:var(--frame);border-bottom:1px solid var(--line-soft);
+    padding:16px 22px 13px;display:flex;align-items:center;justify-content:space-between}
   .top h2{font-size:23px;font-weight:300;letter-spacing:-.015em}
   .top h2 b{font-weight:800}
   .top .mini{font-size:11px;color:var(--text-3);letter-spacing:.2em;font-weight:300}
@@ -350,7 +350,8 @@
     display:none;align-items:flex-end;animation:fade .25s}
   .scrim.show{display:flex}
   .sheet{width:100%;background:var(--frame);border-top:1px solid var(--line);border-radius:22px 22px 0 0;
-    padding:20px 22px 26px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+    padding:20px 22px 26px;animation:up .3s cubic-bezier(.2,.8,.2,1);
+    max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   @keyframes up{from{transform:translateY(100%)}to{transform:none}}
   .sheet h3{font-size:16px;font-weight:600;margin-bottom:3px}
   .sheet .sub{font-size:12px;color:var(--text-3);margin-bottom:16px;font-weight:300}
@@ -432,8 +433,13 @@
   .scrim{align-items:center}
   .sheet{max-width:460px;margin:0 auto;border-radius:22px}
   @media (min-width:768px){
-    .stage{padding-top:14px}
+    .stage{padding-top:0}
     #entry{padding-top:8px}
+    /* 데스크탑: 콘텐츠를 '페이지'로 — 거터(뒷 배경)는 어둡게, 컬럼은 밝게 + 그림자.
+       헤더(흰색 셸 앱바) 아래에 또렷한 페이지가 놓여 헤더·내비와 어울리게 한다. */
+    html,body{background:#D4D7DD}
+    .screen{background:var(--bg);box-shadow:0 0 0 1px var(--line),0 14px 44px rgba(16,24,40,.07);min-height:100dvh}
+    .nav{background:rgba(255,255,255,.97)}
   }
 </style>
 
