@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>전력분석 현장 강의 | PROCESS</title>
+
+<meta name="description" content="상주상무·인천유나이티드·국가대표팀을 거친 전력분석관의 현장 강의. 분석관을 꿈꾸는 이들을 위한 실전 커리큘럼. 입문·심화 8강. PROCESS.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="전력분석 현장 강의 | PROCESS">
+<meta property="og:description" content="현장과 데이터를 연결하는 실전형 분석 교육. 입문 4강 · 심화 4강.">
+<meta property="og:locale" content="ko_KR">
+<meta name="theme-color" content="#070708">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PROCESS">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;600;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#070708;--ink-2:#0c0d10;--navy:#0a2c45;--navy-deep:#06203a;
+  --navy-soft:rgba(18,72,112,.34);--paper:#f1efea;--paper-dim:#c7c5bf;
+  --muted:#85878d;--muted-2:#5d6066;--line:rgba(255,255,255,.085);
+  --line-2:rgba(255,255,255,.14);--white:#fff;--gold:#3f8ac0;
+  --display:'Montserrat',sans-serif;--kr:'Noto Sans KR',sans-serif;--maxw:1240px;
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+body{background:var(--ink);color:var(--paper);font-family:var(--kr);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(120% 80% at 50% -10%,rgba(20,70,110,.2),transparent 60%);}
+a{color:inherit;text-decoration:none;}
+.wm{font-family:var(--display);letter-spacing:.02em;white-space:nowrap;font-weight:200;}
+.wm b{font-weight:800;}
+.container{max-width:var(--maxw);margin:0 auto;padding:0 32px;}
+.mono{font-family:var(--display);font-weight:600;letter-spacing:.18em;text-transform:uppercase;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 32px;padding-top:max(18px,env(safe-area-inset-top));background:rgba(7,7,8,.55);backdrop-filter:blur(18px);border-bottom:1px solid transparent;transition:.35s;}
+nav.scrolled{background:rgba(7,7,8,.9);border-bottom-color:var(--line);padding-top:14px;padding-bottom:14px;}
+.nav-logo{font-size:22px;letter-spacing:.04em;color:var(--white);}
+.nav-logo small{font-family:var(--kr);font-size:11px;font-weight:400;letter-spacing:.04em;color:var(--muted);margin-left:10px;}
+.nav-menu{display:flex;gap:34px;align-items:center;}
+.nav-menu a{font-size:13.5px;color:var(--paper-dim);font-weight:400;transition:.2s;position:relative;}
+.nav-menu a::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:1px;background:var(--white);transition:.25s;}
+.nav-menu a:hover{color:var(--white);}.nav-menu a:hover::after{width:100%;}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--kr);font-size:13.5px;font-weight:700;cursor:pointer;border:0;border-radius:2px;transition:.25s;}
+.btn-primary{background:var(--paper);color:var(--ink);padding:11px 22px;}
+.btn-primary:hover{background:var(--white);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--paper);border:1px solid var(--line-2);padding:11px 22px;}
+.btn-ghost:hover{border-color:var(--paper);background:rgba(255,255,255,.04);}
+.nav-burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:6px;}
+.nav-burger span{width:22px;height:2px;background:var(--paper);display:block;}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:130px 0 60px;overflow:hidden;}
+.pitch{position:absolute;inset:0;z-index:0;opacity:.5;}
+.pitch svg{width:100%;height:100%;}
+.pitch line,.pitch circle,.pitch rect{stroke:rgba(255,255,255,.06);stroke-width:1.4;fill:none;}
+.hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(7,7,8,.2),rgba(7,7,8,.5) 70%,var(--ink));}
+.hero .container{position:relative;z-index:3;display:grid;grid-template-columns:1.15fr .85fr;gap:60px;align-items:center;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12px;color:var(--paper-dim);margin-bottom:24px;opacity:0;transform:translateY(14px);animation:rise .9s .15s forwards cubic-bezier(.2,.8,.2,1);}
+.hero-eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px 2px rgba(63,138,192,.7);}
+.hero h1{font-family:var(--kr);font-weight:900;line-height:1.08;letter-spacing:-.01em;font-size:clamp(38px,6vw,76px);color:var(--white);margin-bottom:22px;}
+.hero h1 .line{display:block;overflow:hidden;}
+.hero h1 .line span{display:block;opacity:0;transform:translateY(110%);}
+.hero h1 .l1 span{animation:slideUp 1s .3s forwards cubic-bezier(.16,1,.3,1);}
+.hero h1 .l2 span{animation:slideUp 1s .42s forwards cubic-bezier(.16,1,.3,1);}
+.hero-sub{max-width:480px;font-size:clamp(15px,1.6vw,17px);color:var(--paper-dim);line-height:1.85;margin-bottom:34px;font-weight:300;opacity:0;transform:translateY(14px);animation:rise 1s .75s forwards cubic-bezier(.2,.8,.2,1);}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:40px;opacity:0;transform:translateY(14px);animation:rise 1s .88s forwards cubic-bezier(.2,.8,.2,1);}
+.hero-cta .btn{padding:15px 30px;font-size:14.5px;}
+.leagues{opacity:0;animation:fade 1.2s 1s forwards;}
+.leagues .lbl{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.league-tags{display:flex;gap:10px;flex-wrap:wrap;}
+.league-tags span{font-size:12.5px;color:var(--paper-dim);border:1px solid var(--line-2);padding:7px 15px;border-radius:40px;}
+/* hero course card */
+.preview{opacity:0;transform:translateY(20px);animation:rise 1.1s .6s forwards cubic-bezier(.2,.8,.2,1);}
+.preview-card{border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--ink-2);box-shadow:0 30px 70px rgba(0,0,0,.5);}
+.preview-thumb{aspect-ratio:16/10;position:relative;background:linear-gradient(150deg,var(--navy-deep),var(--ink));display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.preview-thumb .pf{position:absolute;inset:0;opacity:.5;}
+.preview-thumb .pf line,.preview-thumb .pf circle{stroke:rgba(255,255,255,.1);stroke-width:1.4;fill:none;}
+.preview-thumb .badge{position:absolute;top:14px;left:14px;font-size:10px;color:var(--ink);background:var(--paper);padding:5px 13px;border-radius:2px;}
+.preview-thumb .play{width:58px;height:58px;border:1.5px solid rgba(255,255,255,.6);border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2;}
+.preview-thumb .play svg{width:18px;height:18px;margin-left:3px;}
+.preview-body{padding:22px 24px 24px;}
+.preview-body .t{font-weight:700;font-size:19px;color:var(--white);}
+.preview-body .m{display:flex;gap:14px;font-size:12.5px;color:var(--muted);margin:10px 0 18px;}
+.preview-body .pr{display:flex;align-items:flex-end;justify-content:space-between;}
+.preview-body .pr .price{font-family:var(--display);font-weight:800;font-size:26px;color:var(--white);}
+.preview-body .pr .ps{font-size:11.5px;color:var(--gold);margin-top:4px;}
+
+/* sections */
+section{position:relative;z-index:3;}
+.sec{padding:118px 0;}
+.sec-head{margin-bottom:54px;max-width:720px;}
+.kicker{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:12px;}
+.kicker::before{content:"";width:30px;height:1px;background:var(--gold);display:inline-block;}
+.sec-head h2{font-family:var(--kr);font-weight:900;font-size:clamp(30px,4.4vw,50px);line-height:1.18;letter-spacing:-.01em;color:var(--white);}
+.sec-head p{margin-top:18px;color:var(--paper-dim);font-size:16px;font-weight:300;line-height:1.85;}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1);}
+.reveal.in{opacity:1;transform:none;}
+@keyframes slideUp{to{opacity:1;transform:translateY(0);}}
+@keyframes rise{to{opacity:1;transform:translateY(0);}}
+@keyframes fade{to{opacity:1;}}
+
+/* who-for */
+.who{background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.who-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.who-item{padding:30px;border:1px solid var(--line);border-radius:8px;transition:.35s;}
+.who-item:hover{border-color:var(--line-2);background:rgba(255,255,255,.02);}
+.who-item .ic{font-family:var(--display);font-weight:800;font-size:13px;color:var(--gold);letter-spacing:.1em;margin-bottom:14px;}
+.who-item h4{font-weight:700;font-size:18px;color:var(--white);margin-bottom:10px;}
+.who-item p{font-size:14px;color:var(--paper-dim);font-weight:300;line-height:1.75;}
+
+/* courses */
+.courses-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch;}
+.cc{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--ink-2);display:flex;flex-direction:column;transition:.4s;position:relative;}
+.cc:hover{transform:translateY(-6px);border-color:var(--line-2);box-shadow:0 24px 60px rgba(0,0,0,.45);}
+.cc.feature{border-color:rgba(255,255,255,.3);box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.cc-flag{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--paper);color:var(--ink);font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.18em;padding:5px 16px;border-radius:0 0 4px 4px;z-index:5;}
+.cc-thumb{aspect-ratio:16/9;position:relative;background:linear-gradient(150deg,var(--navy-deep),var(--ink));display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.cc-thumb .pf{position:absolute;inset:0;opacity:.5;}
+.cc-thumb .pf line,.cc-thumb .pf circle{stroke:rgba(255,255,255,.1);stroke-width:1.4;fill:none;}
+.cc-thumb .lvl{position:absolute;top:14px;left:14px;font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.16em;padding:5px 12px;border-radius:3px;border:1px solid var(--line-2);background:rgba(7,7,8,.55);backdrop-filter:blur(6px);color:var(--white);}
+.cc-thumb .em{font-size:40px;position:relative;z-index:2;filter:grayscale(.2);}
+.cc-body{padding:26px 24px 28px;display:flex;flex-direction:column;flex:1;}
+.cc-body .ct{font-weight:700;font-size:21px;color:var(--white);margin-bottom:12px;}
+.cc-body .cd{font-size:14px;color:var(--paper-dim);font-weight:300;line-height:1.75;margin-bottom:22px;flex:1;}
+.cc-inc{margin-bottom:22px;}
+.cc-inc .il{font-family:var(--display);font-size:10.5px;font-weight:600;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.cc-inc ul{list-style:none;}
+.cc-inc li{font-size:13px;color:var(--paper-dim);font-weight:300;padding:5px 0;display:flex;gap:9px;align-items:center;}
+.cc-inc li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);flex:0 0 auto;}
+.cc-foot{border-top:1px solid var(--line);padding-top:20px;}
+.cc-price{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;}
+.cc-price .now{font-family:var(--display);font-weight:800;font-size:27px;color:var(--white);}
+.cc-price .was{font-size:14px;color:var(--muted-2);text-decoration:line-through;}
+.cc-price .off{font-size:11px;color:var(--gold);font-weight:600;}
+.cc .btn{width:100%;justify-content:center;padding:14px;}
+
+/* curriculum */
+.cur-tabs{display:flex;gap:10px;margin-bottom:30px;}
+.cur-tab{font-family:var(--kr);font-size:13.5px;color:var(--paper-dim);border:1px solid var(--line-2);background:transparent;padding:9px 20px;border-radius:40px;cursor:pointer;transition:.25s;font-weight:500;}
+.cur-tab.on{background:var(--paper);color:var(--ink);border-color:var(--paper);}
+.cur-list{border-top:1px solid var(--line);}
+.lec{border-bottom:1px solid var(--line);cursor:pointer;transition:.3s;}
+.lec-head{display:grid;grid-template-columns:54px 1fr auto;gap:18px;align-items:center;padding:22px 6px;}
+.lec:hover{padding-left:8px;}
+.lec .num{font-family:var(--display);font-weight:600;font-size:14px;color:var(--muted-2);}
+.lec .nm{font-weight:700;font-size:17.5px;color:var(--white);}
+.lec .sb{font-size:13px;color:var(--gold);font-weight:300;margin-top:3px;}
+.lec .tg{width:30px;height:30px;border:1px solid var(--line-2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--paper-dim);font-size:18px;font-weight:300;transition:.3s;}
+.lec.open .tg{transform:rotate(45deg);background:var(--paper);color:var(--ink);border-color:var(--paper);}
+.lec-exp{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+.lec-exp .inner{padding:0 6px 26px 78px;font-size:14.5px;color:var(--paper-dim);font-weight:300;line-height:1.85;}
+.lec.open .lec-exp{max-height:320px;}
+.cur-pane{display:none;}
+.cur-pane.on{display:block;}
+
+/* instructor */
+.inst{background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.inst-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:start;}
+.inst-card{position:sticky;top:100px;}
+.inst-photo{aspect-ratio:4/5;border-radius:12px;border:1px solid var(--line-2);background:linear-gradient(160deg,var(--navy-deep),var(--ink) 70%);position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:30px;}
+.inst-photo .pf{position:absolute;inset:0;opacity:.4;}
+.inst-photo .pf line,.inst-photo .pf circle{stroke:rgba(255,255,255,.12);stroke-width:1.6;fill:none;}
+.inst-photo .nm{position:relative;z-index:2;}
+.inst-photo .nm .k{font-family:var(--display);font-size:12px;letter-spacing:.16em;color:var(--gold);font-weight:600;}
+.inst-photo .nm .n{font-weight:900;font-size:40px;color:var(--white);line-height:1.1;margin-top:6px;}
+.inst-photo .nm .r{font-size:13px;color:var(--paper-dim);font-weight:300;margin-top:6px;}
+.inst-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;}
+.inst-badges span{font-family:var(--display);font-size:10.5px;font-weight:500;letter-spacing:.06em;color:var(--paper-dim);border:1px solid var(--line-2);padding:6px 12px;border-radius:3px;}
+.tl{position:relative;}
+.tl::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:1px;background:var(--line-2);}
+.tl-item{position:relative;padding:0 0 30px 36px;}
+.tl-item::before{content:"";position:absolute;left:0;top:6px;width:15px;height:15px;border-radius:50%;border:2px solid var(--gold);background:var(--ink);}
+.tl-item .yr{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);}
+.tl-item .org{font-weight:700;font-size:18px;color:var(--white);margin:4px 0 6px;}
+.tl-item .ds{font-size:14px;color:var(--paper-dim);font-weight:300;line-height:1.7;}
+
+/* apply CTA */
+.apply{padding:130px 0;text-align:center;position:relative;overflow:hidden;}
+.apply::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 110% at 50% 50%,var(--navy-soft),transparent 65%);}
+.apply .container{position:relative;z-index:2;}
+.apply .wm-big{font-family:var(--display);font-size:clamp(34px,6vw,72px);letter-spacing:.05em;color:rgba(255,255,255,.14);font-weight:200;line-height:1;margin-bottom:24px;}
+.apply .wm-big b{font-weight:800;color:rgba(255,255,255,.28);}
+.apply h2{font-family:var(--kr);font-weight:900;font-size:clamp(28px,4.4vw,48px);color:var(--white);line-height:1.2;letter-spacing:-.01em;}
+.apply p{color:var(--paper-dim);font-size:16px;font-weight:300;margin-top:18px;}
+.apply .btn{margin-top:34px;padding:17px 40px;font-size:15px;}
+.apply small{display:block;margin-top:18px;color:var(--muted-2);font-size:12.5px;}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:60px 0 40px;}
+.foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;}
+.foot .wm{font-size:24px;color:var(--white);}
+.foot .links{display:flex;gap:24px;}
+.foot .links a{font-size:13px;color:var(--muted);}
+.foot .links a:hover{color:var(--paper);}
+.foot .cp{font-size:12.5px;color:var(--muted-2);width:100%;border-top:1px solid var(--line);padding-top:24px;margin-top:8px;}
+
+@media(max-width:980px){
+  .hero .container{grid-template-columns:1fr;gap:44px;}
+  .preview{max-width:420px;}
+  .who-grid{grid-template-columns:1fr;}
+  .courses-grid{grid-template-columns:1fr;max-width:460px;margin:0 auto;}
+  .cc.feature{transform:none;}
+  .inst-wrap{grid-template-columns:1fr;gap:40px;}
+  .inst-card{position:static;}
+  .inst-photo{aspect-ratio:16/10;}
+}
+@media(max-width:680px){
+  .container{padding:0 22px;}
+  nav{padding:14px 22px;}
+  .nav-menu{display:none;}.nav-burger{display:flex;}
+  .nav-logo small{display:none;}
+  .sec{padding:80px 0;}
+  .lec-head{grid-template-columns:40px 1fr auto;gap:12px;}
+  .lec-exp .inner{padding-left:52px;}
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="nav-logo wm" href="index.html"><b>PRO</b>CESS <small>전력분석 강의</small></a>
+  <div class="nav-menu">
+    <a href="#courses">강의</a>
+    <a href="#curriculum">커리큘럼</a>
+    <a href="#instructor">강사</a>
+    <a href="#apply">신청</a>
+  </div>
+  <div class="nav-right" style="display:flex;gap:14px;align-items:center;">
+    <a class="btn btn-primary" href="#apply">수강 신청</a>
+    <button class="nav-burger" id="burger" aria-label="메뉴"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="pitch">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <line x1="720" y1="0" x2="720" y2="900"/><circle cx="720" cy="450" r="120"/><circle cx="720" cy="450" r="3"/>
+      <rect x="0" y="270" width="170" height="360"/><rect x="0" y="370" width="70" height="160"/>
+      <rect x="1270" y="270" width="170" height="360"/><rect x="1370" y="370" width="70" height="160"/>
+    </svg>
+  </div>
+  <div class="container">
+    <div>
+      <span class="hero-eyebrow"><span class="dot"></span>PROCESS 강의 · Performance Analysis</span>
+      <h1>
+        <span class="line l1"><span>현장과 데이터를</span></span>
+        <span class="line l2"><span>연결한다</span></span>
+      </h1>
+      <p class="hero-sub">상주상무·인천유나이티드·국가대표팀을 거친 전력분석관의 현장 강의. 분석관을 꿈꾸는 이들을 위한 실전형 커리큘럼, 입문 4강과 심화 4강.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#courses">강의 둘러보기</a>
+        <a class="btn btn-ghost" href="#instructor">강사 소개 ↗</a>
+      </div>
+      <div class="leagues">
+        <div class="lbl mono" style="font-size:11px;letter-spacing:.2em;">현장 연계 리그</div>
+        <div class="league-tags">
+          <span>고등리그</span><span>대학리그</span><span>프로산하팀</span><span>K리그</span>
+        </div>
+      </div>
+    </div>
+    <div class="preview">
+      <div class="preview-card">
+        <div class="preview-thumb">
+          <svg class="pf" viewBox="0 0 400 250"><line x1="200" y1="0" x2="200" y2="250"/><circle cx="200" cy="125" r="48"/><rect x="0" y="78" width="58" height="94" fill="none"/><rect x="342" y="78" width="58" height="94" fill="none"/></svg>
+          <span class="badge mono" style="font-size:10px;">BESTSELLER</span>
+          <div class="play"><svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="preview-body">
+          <div class="t">입문 + 심화 번들</div>
+          <div class="m"><span>현장 강의 8강</span><span>인사이트 자료</span></div>
+          <div class="pr">
+            <div>
+              <div class="price">₩698,000</div>
+              <div class="ps">전 과정 8강 · ₩98,000 할인</div>
+            </div>
+            <a class="btn btn-primary" href="https://forms.gle/8Dz1G7rkKXQNEQiN7" target="_blank" rel="noopener" style="padding:10px 18px;">구매하기</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- WHO FOR -->
+<section class="who sec" id="who">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="kicker">For Whom</div>
+      <h2>이 강의는 이런 분들을 위한 것입니다</h2>
+    </div>
+    <div class="who-grid reveal">
+      <div class="who-item"><div class="ic mono">01</div><h4>분석관을 꿈꾸는 사람</h4><p>경기를 좋아하는 것을 넘어, 경기를 직업으로 읽고 싶은 사람. 어디서부터 시작해야 할지 막막한 지망생을 위한 출발선.</p></div>
+      <div class="who-item"><div class="ic mono">02</div><h4>현장의 분석코치</h4><p>고등·대학·프로산하팀에서 이미 분석을 맡고 있지만, 채택되는 리포트와 전달법을 체계적으로 정리하고 싶은 코치.</p></div>
+      <div class="who-item"><div class="ic mono">03</div><h4>데이터를 무기로 만들 감독</h4><p>영상과 데이터를 팀 운영에 녹이고 싶은 지도자. 분석관의 언어를 이해하면 코칭의 해상도가 달라집니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- COURSES -->
+<section class="sec" id="courses">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="kicker">Courses</div>
+      <h2>지금 시작할 강의를 고르세요</h2>
+      <p>입문은 '보는 눈'을, 심화는 '쓰이는 리포트'를. 번들은 가장 빠르게 현장 분석관 수준에 도달하는 길입니다.</p>
+    </div>
+    <div class="courses-grid reveal">
+
+      <div class="cc">
+        <div class="cc-thumb">
+          <svg class="pf" viewBox="0 0 400 225"><line x1="200" y1="0" x2="200" y2="225"/><circle cx="200" cy="112" r="42"/></svg>
+          <span class="lvl">BASIC</span><span class="em">⚽</span>
+        </div>
+        <div class="cc-body">
+          <div class="ct">현강 입문</div>
+          <div class="cd">분석관의 눈으로 경기를 읽는 법. 노테이셔널 분석부터 인사이트 전달까지 4강 완성.</div>
+          <div class="cc-inc">
+            <div class="il">포함 내용</div>
+            <ul><li>현장 강의 4강</li><li>실습 자료 제공</li><li>수료증 발급</li><li>Q&amp;A 지원</li></ul>
+          </div>
+          <div class="cc-foot">
+            <div class="cc-price"><span class="now">₩298,000</span></div>
+            <a class="btn btn-ghost" href="#curriculum">커리큘럼 보기 →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-thumb">
+          <svg class="pf" viewBox="0 0 400 225"><line x1="200" y1="0" x2="200" y2="225"/><circle cx="200" cy="112" r="42"/><rect x="0" y="70" width="52" height="84" fill="none"/></svg>
+          <span class="lvl">ADVANCED</span><span class="em">📊</span>
+        </div>
+        <div class="cc-body">
+          <div class="ct">현강 심화</div>
+          <div class="cd">상대팀 분석 리포트, 자팀 스카우팅, 코칭스태프 전달법까지. 현장 즉시 적용 가능한 심화 과정.</div>
+          <div class="cc-inc">
+            <div class="il">포함 내용</div>
+            <ul><li>현장 강의 4강</li><li>인사이트 자료 제공</li><li>실습 자료 제공</li><li>수료증 발급</li></ul>
+          </div>
+          <div class="cc-foot">
+            <div class="cc-price"><span class="now">₩498,000</span></div>
+            <a class="btn btn-ghost" href="#curriculum">커리큘럼 보기 →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="cc feature">
+        <div class="cc-flag">BEST VALUE</div>
+        <div class="cc-thumb">
+          <svg class="pf" viewBox="0 0 400 225"><line x1="200" y1="0" x2="200" y2="225"/><circle cx="200" cy="112" r="42"/><rect x="0" y="70" width="52" height="84" fill="none"/><rect x="348" y="70" width="52" height="84" fill="none"/></svg>
+          <span class="lvl">BUNDLE</span><span class="em">🎯</span>
+        </div>
+        <div class="cc-body">
+          <div class="ct">입문 + 심화 번들</div>
+          <div class="cd">입문·심화 전 과정을 한번에. 8강 완주 시 가장 빠르게 현장 분석관 수준에 도달합니다.</div>
+          <div class="cc-inc">
+            <div class="il">포함 내용</div>
+            <ul><li>입문 + 심화 8강 전 과정</li><li>인사이트 자료 제공</li><li>실습 자료 제공</li><li>수료증 발급</li></ul>
+          </div>
+          <div class="cc-foot">
+            <div class="cc-price"><span class="now">₩698,000</span><span class="was">₩796,000</span><span class="off">12% OFF</span></div>
+            <a class="btn btn-primary" href="https://forms.gle/8Dz1G7rkKXQNEQiN7" target="_blank" rel="noopener">수강 신청 →</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CURRICULUM -->
+<section class="sec" id="curriculum" style="padding-top:0;">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="kicker">Curriculum</div>
+      <h2>관찰에서 채택되는 분석까지</h2>
+      <p>입문 4강으로 '경기를 보는 눈'을, 심화 4강으로 '현장에서 쓰이는 리포트'를 완성합니다.</p>
+    </div>
+    <div class="reveal">
+      <div class="cur-tabs">
+        <button class="cur-tab on" data-pane="basic">입문 · 4강</button>
+        <button class="cur-tab" data-pane="adv">심화 · 4강</button>
+      </div>
+
+      <div class="cur-pane on" id="pane-basic">
+        <div class="cur-list">
+          <div class="lec"><div class="lec-head"><span class="num">01</span><div><div class="nm">노테이셔널 분석</div><div class="sb">관찰</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">경기를 보는 눈을 훈련합니다. 전술적 움직임, 공간 점유, 압박 트리거 등을 체계적으로 기록하는 노테이셔널 분석의 기초를 배웁니다.</div></div></div>
+          <div class="lec"><div class="lec-head"><span class="num">02</span><div><div class="nm">영상 편집</div><div class="sb">전달</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">분석한 내용을 영상으로 전달하는 법을 배웁니다. 클립 컷팅, 하이라이트 구성, 코칭스태프가 바로 이해할 수 있는 편집 방식을 실습합니다.</div></div></div>
+          <div class="lec"><div class="lec-head"><span class="num">03</span><div><div class="nm">태깅</div><div class="sb">구조화</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">영상 분석 툴(VIPRO 등)을 활용해 플레이를 태깅하고 데이터로 구조화하는 방법을 배웁니다. 반복 패턴을 빠르게 추출하는 워크플로우를 익힙니다.</div></div></div>
+          <div class="lec"><div class="lec-head"><span class="num">04</span><div><div class="nm">인사이트 도출과 전달력</div><div class="sb">의미를 끌어내고 설득하는 법</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">수집한 데이터에서 의미 있는 인사이트를 끌어내는 방법과, 그것을 코치·선수에게 설득력 있게 전달하는 커뮤니케이션 방법론을 다룹니다. In Possession / Transition / Counter-attack 각 국면별로 무엇을 봐야 하는지, 실전 발표 자료 구성법까지 다룹니다.</div></div></div>
+        </div>
+      </div>
+
+      <div class="cur-pane" id="pane-adv">
+        <div class="cur-list">
+          <div class="lec"><div class="lec-head"><span class="num">01</span><div><div class="nm">상대팀 분석 리포트 작성</div><div class="sb">이번 주 상대, 어떻게 막을 것인가</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">단순 관찰을 넘어 "이번 주 상대팀을 어떻게 막을 것인가"라는 질문에 답하는 리포트를 작성합니다. DF 3rd / Mid 3rd / AT 3rd 구역별 분석 프레임과 Penetration 패턴을 실전 사례로 다룹니다.</div></div></div>
+          <div class="lec"><div class="lec-head"><span class="num">02</span><div><div class="nm">자팀 스카우팅</div><div class="sb">우리 팀을 객관적으로 보는 법</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">상대를 보는 것보다 더 어려운 게 우리 팀을 객관적으로 보는 것입니다. Half Space 침투 구조, In Possession 빌드업 패턴, Transition 후 역습 구조를 데이터 툴과 결합해 자팀 약점을 찾는 방법론을 배웁니다.</div></div></div>
+          <div class="lec"><div class="lec-head"><span class="num">03</span><div><div class="nm">코칭스태프에게 전달하는 법</div><div class="sb">채택되는 분석의 조건</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">같은 분석도 누가 어떻게 전달하느냐에 따라 채택 여부가 달라집니다. 감독·코치 유형별 커뮤니케이션 방식, 발표 길이와 밀도, 현장에서 바로 쓸 수 있는 자료 구성법을 배웁니다.</div></div></div>
+          <div class="lec"><div class="lec-head"><span class="num">04</span><div><div class="nm">분석관의 루틴 설계</div><div class="sb">지속 가능한 분석 워크플로우</div></div><span class="tg">+</span></div><div class="lec-exp"><div class="inner">경기 전·중·후 분석 루틴, 시즌 중 데이터 축적 방식, 혼자 운영하는 분석관이 번아웃 없이 지속할 수 있는 워크플로우를 설계합니다. 인사이트 자료로 실제 템플릿을 제공합니다.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTRUCTOR -->
+<section class="inst sec" id="instructor">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="kicker">Instructor</div>
+      <h2>현장에서 검증된 커리어가<br>곧 커리큘럼입니다</h2>
+    </div>
+    <div class="inst-wrap">
+      <div class="inst-card reveal">
+        <div class="inst-photo">
+          <svg class="pf" viewBox="0 0 320 400"><line x1="0" y1="200" x2="320" y2="200"/><circle cx="160" cy="200" r="56"/><rect x="90" y="0" width="140" height="56" fill="none"/><rect x="90" y="344" width="140" height="56" fill="none"/></svg>
+          <div class="nm">
+            <div class="k mono">Analysis Coach · Performance Analyst</div>
+            <div class="n">우원재</div>
+            <div class="r">전력분석관</div>
+          </div>
+        </div>
+        <div class="inst-badges">
+          <span>K리그1</span><span>올림픽대표팀</span><span>WA 대표팀</span><span>U16·U18·U19</span><span>AFC Coaching B</span><span>KFA 퍼포먼스 애널리스트</span><span>2025 한국축구과학회</span>
+        </div>
+      </div>
+      <div class="tl reveal">
+        <div class="tl-item"><div class="yr">2023–24</div><div class="org">U23 올림픽대표팀</div><div class="ds">피지컬파트 분석관</div></div>
+        <div class="tl-item"><div class="yr">2021</div><div class="org">인천유나이티드 FC</div><div class="ds">전력분석코치 · 훈련 구성, 상대 경기분석, 경기 중 실시간 피드백</div></div>
+        <div class="tl-item"><div class="yr">2019</div><div class="org">대한민국 WA 대표팀</div><div class="ds">전력분석관 · 미국 원정 2연전</div></div>
+        <div class="tl-item"><div class="yr">2019</div><div class="org">연령별 대표팀</div><div class="ds">U16 · U18 · U19 전력분석관</div></div>
+        <div class="tl-item"><div class="yr">2018–19</div><div class="org">제주유나이티드 FC</div><div class="ds">전력분석관 · 상대분석 미팅, 전술적 훈련 준비, U18 프로산하팀 전술 트렌드 강의</div></div>
+        <div class="tl-item"><div class="yr">2016–17</div><div class="org">상주상무 FC</div><div class="ds">전력분석관 · 게임모델 영상 제작, 상대 경기분석 미팅, 전술적 훈련 미팅</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLY -->
+<section class="apply" id="apply">
+  <div class="container">
+    <div class="wm-big"><b>PRO</b>CESS</div>
+    <h2>지금, 과정을 시작하세요</h2>
+    <p>분석관을 꿈꾸는 모든 이들을 위한 커리큘럼. 현장에서 바로 쓸 수 있는 실전 지식.</p>
+    <a class="btn btn-primary" href="https://forms.gle/8Dz1G7rkKXQNEQiN7" target="_blank" rel="noopener">수강 신청하기</a>
+    <small>신청서 작성 후 2일 내 결제·일정 안내를 보내드립니다</small>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div class="wm"><b>PRO</b>CESS</div>
+      <div class="links">
+        <a href="#courses">강의</a><a href="#curriculum">커리큘럼</a><a href="#instructor">강사</a><a href="#apply">신청</a>
+      </div>
+      <div class="cp">© 2026 PROCESS · 과정에 몰입한다. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+var nav=document.getElementById('nav');
+window.addEventListener('scroll',function(){nav.classList.toggle('scrolled',window.scrollY>40);});
+
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14,rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+
+// curriculum tabs
+document.querySelectorAll('.cur-tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.cur-tab').forEach(function(x){x.classList.remove('on');});
+    document.querySelectorAll('.cur-pane').forEach(function(x){x.classList.remove('on');});
+    t.classList.add('on');
+    document.getElementById('pane-'+t.dataset.pane).classList.add('on');
+  });
+});
+
+// lecture accordion
+document.querySelectorAll('.lec').forEach(function(l){
+  l.addEventListener('click',function(){
+    var open=l.classList.contains('open');
+    l.parentElement.querySelectorAll('.lec.open').forEach(function(x){x.classList.remove('open');});
+    if(!open) l.classList.add('open');
+  });
+});
+
+document.getElementById('burger').addEventListener('click',function(){
+  document.getElementById('courses').scrollIntoView({behavior:'smooth'});
+});
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "PROCESS · 과정에 몰입한다",
+  "short_name": "PROCESS",
+  "description": "코치를 위한 학습 플랫폼 — 강의 · 프로세스 스튜디오",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070708",
+  "theme_color": "#070708",
+  "lang": "ko",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "프로세스 스튜디오",
+      "short_name": "스튜디오",
+      "url": "studio.html",
+      "description": "작전판 · 일정 · 게임 모델"
+    },
+    {
+      "name": "전력분석 강의",
+      "short_name": "강의",
+      "url": "course.html",
+      "description": "입문 · 심화 8강"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# 에디터/시스템
+Thumbs.db
+*.log
+.vscode/
+.idea/
