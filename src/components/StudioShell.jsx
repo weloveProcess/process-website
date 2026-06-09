@@ -13,6 +13,23 @@ import {
 
 const STATE_KINDS = ['matchnotes', 'match', 'schedule']
 
+// 로그아웃 시 비우는 스튜디오 작업 데이터(다음 사용자에게 새지 않도록).
+// UI 환경설정(cs_devmode·cs_onboard_v1)은 유지한다.
+const STUDIO_LOCAL_KEYS = [
+  'tactics_plays_v1',
+  'training_sessions_v1',
+  'cs_matchnotes',
+  'cs_match_v1',
+  'process_coach_v1',
+]
+function clearStudioLocal() {
+  for (const k of STUDIO_LOCAL_KEYS) {
+    try {
+      localStorage.removeItem(k)
+    } catch (_) {}
+  }
+}
+
 const HINTS = {
   board: '전술·세션을 그리고, 애니메이션·영상으로 내보내세요',
   process: '경기일(MD) 기준 자동 주기화 · 훈련 블록에서 작전판 첨부 가능',
@@ -158,9 +175,18 @@ export default function StudioShell() {
     return () => window.removeEventListener('message', onMessage)
   }, [])
 
-  // 로그인 상태가 바뀌면 두 앱에 알림(이미 로드된 iframe 대상)
+  // 로그인 상태가 바뀌면 두 앱에 알림 + 로그아웃 전환이면 로컬 정리
+  const prevUserIdRef = useRef(user?.id ?? null)
   useEffect(() => {
+    const prev = prevUserIdRef.current
+    const cur = user?.id ?? null
+    prevUserIdRef.current = cur
     broadcastAuth()
+    if (prev && !cur) {
+      // 실제 로그아웃: 이전 사용자 데이터를 비우고 빈 상태로 새로고침
+      clearStudioLocal()
+      reloadFrames()
+    }
   }, [user])
 
   // 로그인하면 단일 상태를 동기화: 클라우드에 있으면 로컬로 복원,

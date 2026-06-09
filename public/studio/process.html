@@ -1814,9 +1814,9 @@ function tplDbOn(){return !!(window.StudioDB&&window.StudioDB.enabled);}
 // 로그인 상태면 Supabase 에서 내 구성 목록을 가져와 myTemplates 를 채운다
 async function loadTemplatesFromDb(){
   if(!tplDbOn())return;
-  // 내 구성은 week 데이터가 작아 목록에 data 까지 함께 받아도 부담 없음
-  const r=await StudioDB.list('template', true);
-  if(r&&r.ok){ myTemplates=r.rows.map(x=>x.data).filter(Boolean); }
+  // 로그인: 본인 클라우드 목록만(실패 시 빈 목록). 로컬로 폴백하지 않음 → 사용자 간 누수 방지.
+  const r=await StudioDB.list('template', true); // week 데이터 작아 목록에 함께 받음
+  myTemplates=(r&&r.ok)?r.rows.map(x=>x.data).filter(Boolean):[];
 }
 async function openTemplates(){
   if(curSession) return;
@@ -1830,11 +1830,8 @@ function delTpl(id){ const t=myTemplates.find(x=>x.id===id);
   myTemplates=myTemplates.filter(t=>t.id!==id); if(__tplSel===id)__tplSel=null; save();
   if(tplDbOn()&&t)StudioDB.del('template',t.name);
   renderTemplateSheet(); }
-// 로그인 시: 오프라인에서 만든 내 구성을 클라우드로 올림
-async function syncUpProcess(){ if(!tplDbOn())return;
-  try{ for(const t of myTemplates){ await StudioDB.upsert('template',t.name,t); } }catch(_){}
-}
-window.addEventListener('studiodb-auth',function(e){ if(e.detail&&e.detail.enabled){ syncUpProcess(); } });
+// 로그인 상태가 켜지면 내 구성 목록을 클라우드 기준으로 갱신(로컬을 올리지 않음 — 계정 오염 방지)
+window.addEventListener('studiodb-auth',function(e){ if(e.detail&&e.detail.enabled){ loadTemplatesFromDb(); } });
 function renderTemplateSheet(){
   const hasContent=week.some(d=>d.match||(d.trainings&&d.trainings.length));
   const sheet=document.getElementById('sheet');

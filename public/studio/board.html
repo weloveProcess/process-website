@@ -1393,32 +1393,29 @@ function dbOn(){return !!(window.StudioDB&&window.StudioDB.enabled);}
 // 단일 상태(매치노트·경기정보) 저장 신호 → 셸이 디바운스 후 Supabase upsert
 function cloudState(kind){try{parent.postMessage({source:'board',type:'cloudSave',kind:kind},'*');}catch(_){}}
 
+// 로그인: Supabase(본인 행)만 / 오프라인: 로컬만 — 서로 폴백하지 않음(사용자 간 누수 방지)
 async function refreshPlays(sel){const s=$("playSel");if(!s)return;
   let names=[];
-  if(dbOn()){const r=await StudioDB.list('play');if(r&&r.ok){names=r.rows.map(x=>x.title);}} // 이름만(가벼움)
-  if(!names.length){const plays=await store.get(PLAYS_KEY)||{};names=Object.keys(plays);}
+  if(dbOn()){const r=await StudioDB.list('play');names=(r&&r.ok)?r.rows.map(x=>x.title):[];} // 클라우드만(이름)
+  else{const plays=await store.get(PLAYS_KEY)||{};names=Object.keys(plays);}                  // 오프라인만
   s.innerHTML='<option value="">배치 불러오기</option>';
   names.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});
   if(sel)s.value=sel;}
 async function savePlay(){const name=prompt("배치 이름");if(!name)return;
   const snap=compact(captureSnap());                                                           // 좌표 압축
-  const plays=await store.get(PLAYS_KEY)||{};plays[name]=snap;await store.set(PLAYS_KEY,plays); // 로컬
-  if(dbOn())await StudioDB.upsert('play',name,snap);                                            // 클라우드
+  if(dbOn())await StudioDB.upsert('play',name,snap);                                            // 로그인: 클라우드
+  else{const plays=await store.get(PLAYS_KEY)||{};plays[name]=snap;await store.set(PLAYS_KEY,plays);} // 오프라인: 로컬
   await refreshPlays(name);toast(`"${name}" 저장됨`);}
 async function loadPlay(name){if(!name)return;let snap=null;
-  if(dbOn()){const r=await StudioDB.get('play',name);if(r&&r.ok)snap=r.data;} // 선택 시에만 data 로드
-  if(snap==null){const plays=await store.get(PLAYS_KEY)||{};snap=plays[name];}
+  if(dbOn()){const r=await StudioDB.get('play',name);snap=(r&&r.ok)?r.data:null;} // 클라우드만
+  else{const plays=await store.get(PLAYS_KEY)||{};snap=plays[name];}               // 오프라인만
   if(snap!=null){loadSnap(snap);toast(`"${name}" 불러옴`);}}
 async function delPlay(){const name=$("playSel").value;if(!name)return;if(!confirm(`"${name}" 삭제?`))return;
-  const plays=await store.get(PLAYS_KEY)||{};delete plays[name];await store.set(PLAYS_KEY,plays);
   if(dbOn())await StudioDB.del('play',name);
+  else{const plays=await store.get(PLAYS_KEY)||{};delete plays[name];await store.set(PLAYS_KEY,plays);}
   await refreshPlays();toast("삭제됨");}
-// 로그인 시: 오프라인에서 만든 배치/세션을 클라우드로 올리고 목록 새로고침
-async function syncUpBoard(){if(!dbOn())return;
-  try{const plays=await store.get(PLAYS_KEY)||{};for(const n in plays){await StudioDB.upsert('play',n,plays[n]);}}catch(_){}
-  try{const sess=await store.get(SESS_KEY)||{};for(const n in sess){await StudioDB.upsert('session',n,sess[n]);}}catch(_){}
-  try{await refreshPlays();}catch(_){}try{await refreshSessions();}catch(_){}}
-window.addEventListener('studiodb-auth',function(e){if(e.detail&&e.detail.enabled){syncUpBoard();}});
+// 로그인 상태가 켜지면 목록만 새로고침(로컬을 클라우드로 올리지 않음 — 계정 오염 방지)
+window.addEventListener('studiodb-auth',function(e){if(e.detail&&e.detail.enabled){try{refreshPlays();}catch(_){}try{refreshSessions();}catch(_){}}});
 
 function boardImageXML(){
   const clone=svg.cloneNode(true);clone.querySelector("#drawCatch")?.remove();
@@ -1621,19 +1618,19 @@ function move(i,dir){const j=i+dir;if(j<0||j>=session.drills.length)return;
 
 async function refreshSessions(sel){const s=$("sessSel");if(!s)return;
   let names=[];
-  if(dbOn()){const r=await StudioDB.list('session');if(r&&r.ok){names=r.rows.map(x=>x.title);}} // 이름만
-  if(!names.length){const all=await store.get(SESS_KEY)||{};names=Object.keys(all);}
+  if(dbOn()){const r=await StudioDB.list('session');names=(r&&r.ok)?r.rows.map(x=>x.title):[];} // 클라우드만
+  else{const all=await store.get(SESS_KEY)||{};names=Object.keys(all);}                          // 오프라인만
   s.innerHTML='<option value="">불러오기</option>';
   names.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});
   if(sel)s.value=sel;}
 async function saveSession(){const title=($("sTitle").value.trim())||("세션 "+new Date().toLocaleDateString());
   session.title=title;const item=compact({title,date:session.date,md:session.md,drills:session.drills}); // 좌표 압축
-  const all=await store.get(SESS_KEY)||{};all[title]=item;await store.set(SESS_KEY,all); // 로컬
-  if(dbOn())await StudioDB.upsert('session',title,item);                                 // 클라우드
+  if(dbOn())await StudioDB.upsert('session',title,item);                                 // 로그인: 클라우드
+  else{const all=await store.get(SESS_KEY)||{};all[title]=item;await store.set(SESS_KEY,all);} // 오프라인: 로컬
   await refreshSessions(title);toast(`"${title}" 저장됨`);}
 async function loadSession(name){if(!name)return;let s=null;
-  if(dbOn()){const r=await StudioDB.get('session',name);if(r&&r.ok)s=r.data;} // 선택 시에만 data 로드
-  if(s==null){const all=await store.get(SESS_KEY)||{};s=all[name];}
+  if(dbOn()){const r=await StudioDB.get('session',name);s=(r&&r.ok)?r.data:null;} // 클라우드만
+  else{const all=await store.get(SESS_KEY)||{};s=all[name];}                        // 오프라인만
   if(!s)return;
   session.title=s.title;session.date=s.date||todayStr();session.md=s.md||"";session.drills=dc(s.drills||[]);renderSession();}
 async function delSession(){const name=$("sessSel").value;if(!name)return;if(!confirm(`"${name}" 세션 삭제?`))return;
