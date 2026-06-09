@@ -3,9 +3,35 @@
 코치를 위한 스튜디오. **Vite + React + Supabase**, **Netlify** 배포.
 
 **메인 페이지(`/`)가 곧 스튜디오**입니다 — 접속하면 작전판/주기화가 바로 열립니다.
-상단에서 **카카오·구글 로그인** 후 작전판·훈련 일정을 **Supabase 클라우드에 저장/불러오기** 합니다.
-(셸·작전판·주기화가 같은 출처라 localStorage 를 공유하므로, 바닐라 JS 앱을 수정하지
-않고 스냅샷 한 덩어리를 클라우드와 동기화합니다.)
+상단에서 **카카오·구글 로그인** 후, 앱의 기존 저장/불러오기 버튼이 **Supabase에 사용자별로**
+데이터를 저장/조회합니다(로그인 안 하면 로컬에서만 동작).
+
+## 개발 내역 (구현 기능)
+
+> 이 저장소는 **개발할 때마다 이 섹션에 내용을 누적 기록**합니다.
+
+### 2026-06 — 스튜디오 메인 전환 · OAuth · Supabase 연동
+- **메인 = 스튜디오**: 루트(`/`)에서 React 셸([`StudioShell.jsx`](src/components/StudioShell.jsx))이
+  작전판([`board.html`](public/studio/board.html))·주기화([`process.html`](public/studio/process.html))를
+  iframe 으로 띄움. 보드/주기화 토글·폰 미리보기·두 앱 간 postMessage 브리지 포함.
+  (기존 마케팅 랜딩 컴포넌트는 `src/components/`에 보존, 현재 미사용.)
+- **소셜 로그인(카카오·구글)**: [`AuthContext.jsx`](src/context/AuthContext.jsx) `signInWithOAuth`.
+  카카오 스코프는 `profile_nickname` 만(이메일 X → 비즈앱 전환 불필요). 헤더
+  [`AuthBar.jsx`](src/components/AuthBar.jsx)는 로그인/로그아웃·닉네임만 표시. 이메일/비번 모달 제거.
+- **항목별 Supabase 저장/불러오기**: 배치(play)·세션(session, "훈련 디자인")·내 구성(template)을
+  각각 `boards` 한 행으로 저장(`kind`, `title`=이름, `data`=내용). 불러오기 목록은
+  Supabase에서 직접 조회. 앱↔셸은 [`db-bridge.js`](public/studio/db-bridge.js)(`window.StudioDB`)
+  RPC → `StudioShell` 이 [`boards.js`](src/lib/boards.js)의 `dbList/dbGet/dbUpsert/dbDelete` 실행.
+- **단일 상태 동기화**: 매치노트·경기정보·훈련일정 작업본은 사용자당 1행(`kind`=matchnotes/match/schedule)
+  으로 자동 저장하고 로그인 시 복원.
+- **사용자별 격리**: 로그인 시 Supabase(RLS 본인 행)만, 로그아웃 시 localStorage 만 사용 —
+  서로 폴백하지 않음. 로그아웃 시 스튜디오 로컬 데이터 정리. (브라우저 공유 localStorage로
+  인한 사용자 간 데이터 누수 방지.)
+- **저장 용량 최적화**: 저장 직전 좌표 등 숫자를 소수 1자리로 반올림(`compact()`)해 스냅샷
+  ~50% 축소(화면은 `.toFixed(1)` 렌더라 무손실). 불러오기 목록은 이름만 조회(data 지연 로드)로
+  전송량 절감.
+- **DB 스키마**: `profiles`·`boards` + RLS + 프로필 자동생성 트리거(소셜 nickname 대응) +
+  이름 기준 upsert용 유니크 인덱스 `boards_user_kind_title_uidx`.
 
 ## 구조
 
@@ -14,32 +40,29 @@ process-website/
 ├─ index.html              # Vite 진입 HTML (meta/폰트/manifest)
 ├─ netlify.toml            # 빌드 + SPA 리다이렉트
 ├─ .env.example            # 환경변수 템플릿
-├─ public/                 # 정적 파일 (manifest, sw, 이미지)
-│  ├─ manifest.json
-│  ├─ sw.js
-│  ├─ instructor.jpg       # ← 강사 사진 직접 넣기 (아래 참고)
-│  └─ studio/              # 코치 스튜디오 (기능별 분리)
-│     ├─ index.html        #   셸: 보드/주기화 토글 + 폰 미리보기 + 브리지
-│     ├─ board.html        #   작전판 (독립 실행 앱)
-│     └─ process.html      #   주기화·훈련 일정 (독립 실행 앱)
+├─ public/                 # 정적 파일 (manifest, sw, 아이콘, 강사사진)
+│  ├─ manifest.json  sw.js  icon-192.png  icon-512.png  instructor.jpg  course.html
+│  └─ studio/              # 코치 스튜디오 (바닐라 JS 앱)
+│     ├─ board.html        #   작전판 + 훈련 디자인(세션) — iframe 으로 로드
+│     ├─ process.html      #   주기화·훈련 일정 — iframe 으로 로드
+│     ├─ db-bridge.js      #   window.StudioDB: 부모 셸 경유 Supabase RPC 브리지
+│     └─ index.html        #   (구) 독립 셸 — 현재는 React StudioShell 이 대체
 ├─ supabase/
-│  └─ schema.sql           # profiles + boards 테이블 / RLS / 트리거
+│  └─ schema.sql           # profiles + boards + RLS + 트리거 + 유니크 인덱스
 └─ src/
    ├─ main.jsx             # 진입점 + SW 등록 + AuthProvider
-   ├─ App.jsx              # 섹션 조립
-   ├─ index.css            # 전역 스타일 (원본 그대로 이전)
+   ├─ App.jsx              # StudioShell 렌더 (메인 = 스튜디오)
+   ├─ index.css            # 전역 + 스튜디오 셸 스타일
    ├─ lib/
    │  ├─ supabase.js       # Supabase 클라이언트
-   │  └─ boards.js         # 작전판 저장/조회 헬퍼
+   │  └─ boards.js         # 항목별/단일상태 저장·조회 헬퍼 (dbList/dbUpsert 등)
    ├─ context/
-   │  └─ AuthContext.jsx   # 세션 상태 + signIn/signUp/signOut
-   ├─ hooks/
-   │  ├─ useScrolled.js    # nav 스크롤 상태
-   │  └─ useScrollReveal.js# 스크롤 등장 애니메이션
+   │  └─ AuthContext.jsx   # 세션 상태 + 카카오/구글 OAuth + signOut
+   ├─ hooks/               # useScrolled, useScrollReveal (랜딩용, 현재 미사용)
    └─ components/
-      ├─ Nav.jsx  Hero.jsx  Lecture.jsx  Studio.jsx
-      ├─ Creed.jsx  AppSection.jsx  Footer.jsx
-      └─ AuthModal.jsx     # 로그인 / 회원가입 모달
+      ├─ StudioShell.jsx   # 메인 셸: iframe·토글·브리지·DB RPC·로그인 동기화
+      ├─ AuthBar.jsx       # 헤더: 카카오/구글 로그인 · 닉네임 · 로그아웃
+      └─ Nav/Hero/Lecture/Studio/Creed/AppSection/Footer.jsx  # (구) 랜딩, 보존·미사용
 ```
 
 ## 1. 로컬 실행
