@@ -63,13 +63,34 @@ export default function StudioShell() {
   const processRef = useRef(null)
   const gamemodelRef = useRef(null)
   const [boardLoaded, setBoardLoaded] = useState(false)
-  // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error'
+  // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
   const savedClearTimer = useRef(null)
-  function flashSaved(ok) {
-    setSaveStatus(ok ? 'saved' : 'error')
+  // 아직 클라우드에 못 올린(오프라인·실패) 종류들 → 온라인 복귀 시 flush
+  const pendingKinds = useRef(new Set())
+  function flashStatus(status, hold = 1800) {
+    setSaveStatus(status)
     clearTimeout(savedClearTimer.current)
-    savedClearTimer.current = setTimeout(() => setSaveStatus(null), 1800)
+    savedClearTimer.current = setTimeout(() => setSaveStatus(null), hold)
+  }
+  function isOffline() {
+    return typeof navigator !== 'undefined' && navigator.onLine === false
+  }
+  // 온라인 복귀 시 보류된 변경을 클라우드로 한꺼번에 동기화
+  function flushPending() {
+    if (!userRef.current || isOffline()) return
+    const kinds = Array.from(pendingKinds.current)
+    if (!kinds.length) return
+    setSaveStatus('saving')
+    Promise.all(
+      kinds.map((kind) =>
+        saveStateKind(kind, lastPayload.current[kind])
+          .then((res) => {
+            if (!(res && res.error)) pendingKinds.current.delete(kind)
+          })
+          .catch(() => {})
+      )
+    ).then(() => flashStatus(pendingKinds.current.size === 0 ? 'saved' : 'error'))
   }
 
   // 메시지 핸들러가 항상 최신 로그인 상태를 보도록 ref 로 보관
@@ -77,6 +98,13 @@ export default function StudioShell() {
   useEffect(() => {
     userRef.current = user
   }, [user])
+  // 온라인 복귀 시 보류된 변경 자동 동기화
+  useEffect(() => {
+    const onOnline = () => flushPending()
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // 앱 저장 신호를 종류별로 디바운스(autosave 폭주 방지)
   const saveTimers = useRef({})
   // 각 종류의 최신 payload(앱이 메모리에서 직렬화해 보낸 상태)
@@ -211,13 +239,24 @@ export default function StudioShell() {
         if (!userRef.current) return
         const kind = d.kind
         if (typeof d.payload === 'string') lastPayload.current[kind] = d.payload
+        pendingKinds.current.add(kind)
+        // 오프라인이면 네트워크 시도 없이 로컬 저장만 알리고 보류 → 온라인 복귀 시 flush
+        if (isOffline()) {
+          clearTimeout(saveTimers.current[kind])
+          flashStatus('offline')
+          return
+        }
         setSaveStatus('saving')
         clearTimeout(saveTimers.current[kind])
         saveTimers.current[kind] = setTimeout(() => {
           const payload = lastPayload.current[kind]
           saveStateKind(kind, payload)
-            .then((res) => flashSaved(!(res && res.error)))
-            .catch(() => flashSaved(false))
+            .then((res) => {
+              const ok = !(res && res.error)
+              if (ok) pendingKinds.current.delete(kind)
+              flashStatus(ok ? 'saved' : 'error')
+            })
+            .catch(() => flashStatus('error'))
         }, 2500)
       }
     }
@@ -376,7 +415,11 @@ export default function StudioShell() {
             letterSpacing: '0.01em',
             color: '#fff',
             background:
-              saveStatus === 'error' ? 'rgba(190,60,60,0.96)' : 'rgba(28,30,38,0.94)',
+              saveStatus === 'error'
+                ? 'rgba(190,60,60,0.96)'
+                : saveStatus === 'offline'
+                  ? 'rgba(120,90,30,0.96)'
+                  : 'rgba(28,30,38,0.94)',
             boxShadow: '0 6px 20px rgba(0,0,0,0.28)',
             backdropFilter: 'blur(6px)',
             pointerEvents: 'none',
@@ -405,6 +448,14 @@ export default function StudioShell() {
                 <path d="M20 6L9 17l-5-5" />
               </svg>
               저장됨
+            </>
+          )}
+          {saveStatus === 'offline' && (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f0c060" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 3l18 18M8.5 8.5A7 7 0 0 0 4 11M12 5a11 11 0 0 1 7 2.6M7.5 12.5A4 4 0 0 1 12 11M12 19h.01" />
+              </svg>
+              오프라인 — 로컬에 저장됨
             </>
           )}
           {saveStatus === 'error' && <>저장 실패 — 다시 시도할게요</>}
