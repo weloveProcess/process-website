@@ -9,6 +9,7 @@ import {
   saveStateKind,
   loadStateKind,
   restoreStateKind,
+  clearLocalKeys,
 } from '../lib/boards'
 
 const STATE_KINDS = ['matchnotes', 'match', 'schedule', 'gamemodel']
@@ -24,12 +25,15 @@ const STUDIO_LOCAL_KEYS = [
   'process_coach_v1',
   'cs_gamemodel_v1',
 ]
-function clearStudioLocal() {
+async function clearStudioLocal() {
   for (const k of STUDIO_LOCAL_KEYS) {
     try {
       localStorage.removeItem(k)
     } catch (_) {}
   }
+  try {
+    await clearLocalKeys(STUDIO_LOCAL_KEYS)
+  } catch (_) {}
 }
 
 const APPS = [
@@ -59,6 +63,14 @@ export default function StudioShell() {
   const processRef = useRef(null)
   const gamemodelRef = useRef(null)
   const [boardLoaded, setBoardLoaded] = useState(false)
+  // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error'
+  const [saveStatus, setSaveStatus] = useState(null)
+  const savedClearTimer = useRef(null)
+  function flashSaved(ok) {
+    setSaveStatus(ok ? 'saved' : 'error')
+    clearTimeout(savedClearTimer.current)
+    savedClearTimer.current = setTimeout(() => setSaveStatus(null), 1800)
+  }
 
   // 메시지 핸들러가 항상 최신 로그인 상태를 보도록 ref 로 보관
   const userRef = useRef(user)
@@ -67,6 +79,8 @@ export default function StudioShell() {
   }, [user])
   // 앱 저장 신호를 종류별로 디바운스(autosave 폭주 방지)
   const saveTimers = useRef({})
+  // 각 종류의 최신 payload(앱이 메모리에서 직렬화해 보낸 상태)
+  const lastPayload = useRef({})
   // 보드에 캡처를 요청한 앱(process | gamemodel)
   const captureReqRef = useRef('process')
 
@@ -192,12 +206,18 @@ export default function StudioShell() {
         // 항목별 저장/불러오기(배치·세션·내 구성) RPC
         handleDbRequest(d, e.source)
       } else if (d.type === 'cloudSave' && STATE_KINDS.includes(d.kind)) {
-        // 단일 상태(매치노트·경기정보·일정·게임모델) → 디바운스 후 Supabase upsert
+        // 단일 상태(매치노트·경기정보·일정·게임모델) → 디바운스 후 Supabase upsert.
+        // payload(메모리 직렬화 상태)를 직접 올려 localStorage/IDB 용량과 무관하게 저장.
         if (!userRef.current) return
         const kind = d.kind
+        if (typeof d.payload === 'string') lastPayload.current[kind] = d.payload
+        setSaveStatus('saving')
         clearTimeout(saveTimers.current[kind])
         saveTimers.current[kind] = setTimeout(() => {
-          saveStateKind(kind).catch(() => {})
+          const payload = lastPayload.current[kind]
+          saveStateKind(kind, payload)
+            .then((res) => flashSaved(!(res && res.error)))
+            .catch(() => flashSaved(false))
         }, 2500)
       }
     }
@@ -213,9 +233,8 @@ export default function StudioShell() {
     prevUserIdRef.current = cur
     broadcastAuth()
     if (prev && !cur) {
-      // 실제 로그아웃: 이전 사용자 데이터를 비우고 빈 상태로 새로고침
-      clearStudioLocal()
-      reloadFrames()
+      // 실제 로그아웃: 이전 사용자 데이터를 비우고(IDB+localStorage) 빈 상태로 새로고침
+      clearStudioLocal().finally(() => reloadFrames())
     }
   }, [user])
 
@@ -236,7 +255,7 @@ export default function StudioShell() {
         try {
           const { data } = await loadStateKind(kind)
           if (data?.data && Object.keys(data.data).length) {
-            if (restoreStateKind(kind, data.data)) wrote = true
+            if (await restoreStateKind(kind, data.data)) wrote = true
           } else {
             await saveStateKind(kind).catch(() => {})
           }
@@ -336,6 +355,62 @@ export default function StudioShell() {
           onLoad={(e) => broadcastAuth(e.target.contentWindow)}
         />
       </div>
+
+      {saveStatus && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            left: '50%',
+            bottom: '22px',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px',
+            padding: '8px 14px',
+            borderRadius: '999px',
+            fontSize: '13px',
+            fontWeight: 600,
+            letterSpacing: '0.01em',
+            color: '#fff',
+            background:
+              saveStatus === 'error' ? 'rgba(190,60,60,0.96)' : 'rgba(28,30,38,0.94)',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.28)',
+            backdropFilter: 'blur(6px)',
+            pointerEvents: 'none',
+            transition: 'opacity .2s ease',
+          }}
+        >
+          {saveStatus === 'saving' && (
+            <>
+              <span
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  border: '2px solid rgba(255,255,255,0.35)',
+                  borderTopColor: '#fff',
+                  borderRadius: '50%',
+                  display: 'inline-block',
+                  animation: 'csspin 0.7s linear infinite',
+                }}
+              />
+              저장 중…
+            </>
+          )}
+          {saveStatus === 'saved' && (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#46d17f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              저장됨
+            </>
+          )}
+          {saveStatus === 'error' && <>저장 실패 — 다시 시도할게요</>}
+          <style>{'@keyframes csspin{to{transform:rotate(360deg)}}'}</style>
+        </div>
+      )}
     </div>
   )
 }

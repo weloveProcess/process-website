@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { idbGet, idbSet, idbDel } from './idb'
 
 // 작전판 / 일정 / 게임모델 저장·조회 헬퍼 (RLS로 본인 데이터만 접근)
 
@@ -92,9 +93,13 @@ const STATE_KEY = {
 }
 const STATE_TITLE = '_state' // 단일 상태 행의 고정 title
 
-export function restoreStateKind(kind, data = {}) {
+// 클라우드 상태를 로컬 작업 버퍼(IndexedDB)에 기록 → 앱이 새로고침 시 읽는다.
+export async function restoreStateKind(kind, data = {}) {
   const k = STATE_KEY[kind]
   if (!k || data[k] == null) return false
+  const ok = await idbSet(k, data[k])
+  if (ok) return true
+  // IDB 불가 시 localStorage 폴백
   try {
     localStorage.setItem(k, data[k])
     return true
@@ -103,18 +108,29 @@ export function restoreStateKind(kind, data = {}) {
   }
 }
 
-// 현재 localStorage 의 단일 상태를 클라우드에 upsert
-export async function saveStateKind(kind) {
+// 단일 상태를 클라우드에 upsert.
+// payload(앱이 메모리에서 직렬화해 보낸 JSON 문자열)가 있으면 그대로 저장 →
+// localStorage/IDB 가 꽉 차 있어도 클라우드 저장은 보장된다.
+// payload 가 없으면(첫 로그인 시드 등) 로컬 버퍼에서 읽어 올린다.
+export async function saveStateKind(kind, payload) {
   const k = STATE_KEY[kind]
   if (!k) return { error: new Error('unknown kind') }
   const { data: userData } = await supabase.auth.getUser()
   const user_id = userData?.user?.id
   if (!user_id) return { data: null, error: new Error('로그인이 필요합니다.') }
   let data = {}
-  try {
-    const v = localStorage.getItem(k)
-    if (v != null) data[k] = v
-  } catch (_) {}
+  let v = payload
+  if (v == null) {
+    try {
+      v = await idbGet(k)
+    } catch (_) {}
+    if (v == null) {
+      try {
+        v = localStorage.getItem(k)
+      } catch (_) {}
+    }
+  }
+  if (v != null) data[k] = v
   return supabase
     .from('boards')
     .upsert(
@@ -123,6 +139,21 @@ export async function saveStateKind(kind) {
     )
     .select()
     .single()
+}
+
+// 로그아웃 시 로컬 작업 버퍼(IDB + localStorage)에서 주어진 키들을 비운다.
+export async function clearLocalKeys(keys = []) {
+  await Promise.all(
+    keys.map((k) =>
+      idbDel(k)
+        .catch(() => {})
+        .then(() => {
+          try {
+            localStorage.removeItem(k)
+          } catch (_) {}
+        })
+    )
+  )
 }
 
 // 클라우드의 단일 상태 조회

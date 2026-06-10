@@ -168,8 +168,9 @@
   </div>
 </div>
 
+<script src="idb-store.js"></script>
 <script>
-(function(){
+(async function(){
   var LS='cs_gamemodel_v1';
   var stage=document.getElementById('stage');
   var momentsEl=document.getElementById('moments');
@@ -191,12 +192,23 @@
     };
   }
 
-  var model;
-  try{ var raw=localStorage.getItem(LS); model = raw?JSON.parse(raw):seed(); }
-  catch(e){ model=seed(); }
+  var model=seed();
+  try{
+    var raw=null;
+    if(window.storage){ var r=await window.storage.get(LS); raw=r?r.value:null; }
+    else { try{ raw=localStorage.getItem(LS); }catch(_){} }
+    if(raw){ var m=JSON.parse(raw); if(m) model=m; }
+  }catch(e){}
   if(!model.open) model.open={ao:true,do:false,dt:false,at:false};
 
-  function save(){ try{localStorage.setItem(LS,JSON.stringify(model));}catch(e){} try{parent.postMessage({source:'gamemodel',type:'cloudSave',kind:'gamemodel'},'*');}catch(_){} }
+  function save(){
+    var json=null; try{ json=JSON.stringify(model); }catch(e){}
+    if(json!=null){
+      if(window.storage){ window.storage.set(LS,json).catch(function(){ try{localStorage.setItem(LS,json);}catch(_){} }); }
+      else { try{ localStorage.setItem(LS,json); }catch(_){} }
+    }
+    try{parent.postMessage({source:'gamemodel',type:'cloudSave',kind:'gamemodel',payload:json},'*');}catch(_){}
+  }
 
   function autosize(ta){ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
 

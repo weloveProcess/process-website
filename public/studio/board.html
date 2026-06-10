@@ -816,6 +816,7 @@
   </div>
 </div>
 
+<script src="idb-store.js"></script>
 <script src="db-bridge.js"></script>
 <script>
 "use strict";
@@ -1590,7 +1591,7 @@ const store={
 const PLAYS_KEY="tactics_plays_v1",SESS_KEY="training_sessions_v1",SESS_CUR="training_session_cur_v1";
 // ── Supabase 연동 헬퍼 (로그인=클라우드 본인 행만 / 오프라인=로컬, 서로 폴백 안 함) ──
 function dbOn(){return !!(window.StudioDB&&window.StudioDB.enabled);}
-function cloudState(kind){try{parent.postMessage({source:'board',type:'cloudSave',kind:kind},'*');}catch(_){}}
+function cloudState(kind,payload){try{parent.postMessage({source:'board',type:'cloudSave',kind:kind,payload:payload},'*');}catch(_){}}
 function compact(o){try{return JSON.parse(JSON.stringify(o,(k,v)=>typeof v==='number'?Math.round(v*10)/10:v));}catch(_){return o;}}
 
 async function refreshPlays(sel){const s=$("playSel");if(!s)return;
@@ -2016,7 +2017,7 @@ let _csWake=null;
 async function csReqWake(){try{if("wakeLock" in navigator){_csWake=await navigator.wakeLock.request("screen");}}catch(_){}}
 function csRelWake(){try{if(_csWake){_csWake.release();_csWake=null;}}catch(_){}}
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&document.body.classList.contains("match-mode"))csReqWake();});
-function mcSave(){try{store.set("cs_match_v1",{home:matchClock.home,away:matchClock.away,homeName:matchClock.homeName,awayName:matchClock.awayName,elapsed:matchClock.elapsed,half:matchClock.half,halfMin:matchClock.halfMin,events:matchClock.events||[],teamColors:dc(state.teamColors||{})});}catch(_){}cloudState('match');}
+function mcSave(){const o={home:matchClock.home,away:matchClock.away,homeName:matchClock.homeName,awayName:matchClock.awayName,elapsed:matchClock.elapsed,half:matchClock.half,halfMin:matchClock.halfMin,events:matchClock.events||[],teamColors:dc(state.teamColors||{})};try{store.set("cs_match_v1",o);}catch(_){}let p=null;try{p=JSON.stringify(o);}catch(_){}cloudState('match',p);}
 async function mcLoad(){try{const d=await store.get("cs_match_v1");if(d){matchClock.home=d.home||0;matchClock.away=d.away||0;
   matchClock.homeName=d.homeName||"우리";matchClock.awayName=d.awayName||"상대";matchClock.events=d.events||[];
   matchClock.elapsed=d.elapsed||0;matchClock._base=matchClock.elapsed;matchClock.half=d.half||1;matchClock.halfMin=d.halfMin||45;matchClock.running=false;
@@ -2122,8 +2123,9 @@ function exitMatch(){matchClock.running=false;clearInterval(matchClock._iv);cons
 /* ===== 경기 메모 — 국면별(공격·수비·전환·세트피스) + 선수별 ===== */
 const NOTE_CATS=[["attack","공격","#C99250"],["defense","수비","#7E8BA3"],["transition","전환","#5FA86E"],["setpiece","세트피스","#6FB5C1"],["player","선수","#5E8FA8"]];
 let mnCat="attack";
-let matchNotes=(function(){try{const r=localStorage.getItem("cs_matchnotes");if(r)return JSON.parse(r);}catch(_){}return {attack:[],defense:[],transition:[],setpiece:[],player:[]};})();
-function mnSave(){try{localStorage.setItem("cs_matchnotes",JSON.stringify(matchNotes));}catch(_){}cloudState('matchnotes');}
+let matchNotes={attack:[],defense:[],transition:[],setpiece:[],player:[]};
+(async function(){try{const r=await store.get("cs_matchnotes");if(r&&typeof r==="object"){matchNotes=r;const p=document.getElementById("matchNotes");if(p&&p.classList.contains("open"))mnRender();}}catch(_){}})();
+function mnSave(){try{store.set("cs_matchnotes",matchNotes);}catch(_){}let p=null;try{p=JSON.stringify(matchNotes);}catch(_){}cloudState('matchnotes',p);}
 function clockStamp(){const m=Math.floor(matchClock.elapsed/60);return (matchClock.half===2?"후":"전")+m+"'";}
 function mnPlayerOpts(){if(!state.players.length)return '<option value="">선수 없음</option>';
   return state.players.slice().sort((a,b)=>(a.team+a.num).localeCompare(b.team+b.num)).map(p=>{

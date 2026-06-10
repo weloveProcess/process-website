@@ -597,6 +597,7 @@
 
 <div id="printDoc"></div>
 
+<script src="idb-store.js"></script>
 <script src="db-bridge.js"></script>
 <script>
 // 국면 — 베르하이언/마리치 4-모먼트 모델 + 비전술 카테고리. 색은 국면별 계열색.
@@ -949,18 +950,23 @@ let ddayLabel='';
 const STORE_KEY='process_coach_v1';
 // 저장 직전 숫자를 소수 1자리로 반올림 → 용량 축소
 function compact(o){try{return JSON.parse(JSON.stringify(o,(k,v)=>typeof v==='number'?Math.round(v*10)/10:v));}catch(_){return o;}}
+// 로컬 작업 버퍼: IndexedDB(window.storage) 우선, 없으면 localStorage 폴백
+function lsGet(k){return (window.storage?window.storage.get(k).then(r=>r?r.value:null).catch(()=>{try{return localStorage.getItem(k);}catch(_){return null;}}):Promise.resolve((function(){try{return localStorage.getItem(k);}catch(_){return null;}})()));}
+function lsSet(k,v){if(window.storage){window.storage.set(k,v).catch(()=>{try{localStorage.setItem(k,v);}catch(_){}});return;}try{localStorage.setItem(k,v);}catch(_){}}
 function save(){
+  let json=null;
   try{
     const dn=document.getElementById('dayN');
     const data={weeks:weeksMap, wk, templates:myTemplates, dday: dn?(parseInt(dn.value)||28):28, ddayLabel:ddayLabel};
-    localStorage.setItem(STORE_KEY, JSON.stringify(data, (k,v)=> k==='_open'?undefined:(typeof v==='number'?Math.round(v*10)/10:v)));
+    json=JSON.stringify(data, (k,v)=> k==='_open'?undefined:(typeof v==='number'?Math.round(v*10)/10:v));
+    lsSet(STORE_KEY, json);
   }catch(e){}
-  // 저장 시 부모(스튜디오 셸)에 알림 → 로그인 상태면 셸이 디바운스 후 Supabase 에 동기화
-  try{parent.postMessage({source:'process',type:'cloudSave',kind:'schedule'},'*');}catch(_){}
+  // 저장 시 부모(스튜디오 셸)에 상태를 함께 전달 → 로그인 상태면 셸이 디바운스 후 Supabase 에 직접 동기화
+  try{parent.postMessage({source:'process',type:'cloudSave',kind:'schedule',payload:json},'*');}catch(_){}
 }
-function loadState(){
+async function loadState(){
   try{
-    const raw=localStorage.getItem(STORE_KEY); if(!raw) return;
+    const raw=await lsGet(STORE_KEY); if(!raw) return;
     const data=JSON.parse(raw);
     if(data.weeks && typeof data.weeks==='object'){ weeksMap=data.weeks; wk=data.wk||0; }
     else if(Array.isArray(data.week) && data.week.length){ weeksMap={0:data.week}; wk=0; }   // 구버전 호환
@@ -1973,7 +1979,8 @@ function closeSheet(){document.getElementById('scrim').classList.remove('show');
 document.getElementById('scrim').onclick=(e)=>{ if(e.target.id!=='scrim') return; if(curSession){ cancelSession(); } else { closeSheet(); } };
 
 /* ---------- init ---------- */
-loadState();
+(async function boot(){
+await loadState();
 // 옛 저장본 호환: 없어진 단계·형식 정규화 (모든 주)
 (function normalizeAll(){
   const phaseFix={'게임':'메인훈련','쿨다운':'메인훈련','쿨':'메인훈련'};
@@ -1988,6 +1995,7 @@ renderPhaseBanner();
 updateTopMini();
 renderWeek(); renderMonth(); renderReview();
 go('schedule');
+})();
 </script>
 <style>.boardrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 4px}
 .boardthumb{width:88px;height:56px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#15172b;flex:0 0 auto}
