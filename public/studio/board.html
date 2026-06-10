@@ -16,6 +16,9 @@
   }
   html[data-pitch="white"]{--pitchbg:#ffffff;--pline:#9aa0ab;--grid:#9aa1ad;--zone:#9aa1ad;--canvas:#dde1e8;}
   html[data-pitch="grass"]{--pitchbg:#1b8044;--pline:rgba(255,255,255,.95);--grid:rgba(255,255,255,.6);--zone:rgba(255,255,255,.6);--canvas:#0e2a18;}
+  /* 훈련 디자인(세션) 배경을 작전판 캔버스와 통일 — 흰색 피치(기본)에서 탭 전환 시 배경색이 바뀌지 않게.
+     잔디/네이비처럼 캔버스가 어두운 모드에선 폼 가독성을 위해 기본 밝은 배경 유지. */
+  html[data-pitch="white"] #sessionView{background:var(--canvas);}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);}
   body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
