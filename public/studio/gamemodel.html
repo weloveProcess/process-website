@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- PROCESS — 게임 모델 (프로토타입 v1) -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<style>
+  :root{
+    --bg:#ECEDF0; --frame:#FFFFFF; --surface:#FFFFFF; --surface-2:#F1F2F4;
+    --line:#E3E5E9; --line-soft:#ECEDF0;
+    --text:#16181C; --text-2:#5C6068; --text-3:#A0A4AC;
+    --accent:#3a6df0; --accent-dim:#bcd0fb; --accent-soft:#edf2fe;
+    --ao:#2E7D63; --ao-soft:#E8F3EE; --ao-line:#BEE0D2;
+    --do:#C24A46; --do-soft:#FBEBEA; --do-line:#F0C2BF;
+    --dt:#B5762B; --dt-soft:#FBF1E0; --dt-line:#E9CB97;
+    --at:#3a6df0; --at-soft:#edf2fe; --at-line:#bcd0fb;
+    --r:14px; --r-sm:9px;
+    --f:-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);font-family:var(--f);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;line-height:1.5}
+  body{display:block;min-height:100dvh}
+
+  .phone{width:100%;max-width:100%;background:transparent;overflow:hidden;position:relative;display:flex;flex-direction:column;height:100dvh}
+  .stage{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .stage::-webkit-scrollbar{display:none}
+
+  /* ---------- top bar ---------- */
+  .gmtop{position:sticky;top:0;z-index:30;background:var(--frame);border-bottom:1px solid var(--line);
+    padding:max(12px,env(safe-area-inset-top)) 22px 12px;display:flex;align-items:center;gap:12px}
+  .gmtop .t{flex:1;min-width:0}
+  .gmtop .t h1{font-size:17px;font-weight:800;letter-spacing:-.2px}
+  .gmtop .t small{display:block;color:var(--text-3);font-size:11.5px;font-weight:600;letter-spacing:.02em;margin-top:1px}
+  .iconbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--text-2);
+    width:36px;height:36px;border-radius:11px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .iconbtn:active{transform:scale(.94)}
+
+  /* ---------- identity card (collapsible) ---------- */
+  .idcard{margin:14px 22px 0;background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);overflow:hidden}
+  .idhead{display:flex;align-items:center;gap:10px;padding:12px 15px;cursor:pointer;user-select:none}
+  .idhead:active{background:var(--surface-2)}
+  .idcard .lab{flex:0 0 auto;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+  .idcard .idprev{flex:1;min-width:0;font-size:12.5px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+  .idcard .idprev.placeholder{color:var(--text-3)}
+  .idcard.open .idprev{display:none}
+  .idcard .chev{flex:0 0 auto;color:var(--text-3);font-size:13px;transition:.2s}
+  .idcard.open .chev{transform:rotate(90deg)}
+  .idcard textarea{display:none;width:100%;border:0;outline:0;resize:none;background:transparent;font-family:var(--f);
+    font-size:14px;line-height:1.5;color:var(--text);padding:0 15px 13px;min-height:20px;max-height:120px;overflow:auto}
+  .idcard.open textarea{display:block}
+  .idcard textarea::placeholder{color:var(--text-3)}
+
+  /* ---------- moment section ---------- */
+  .moment{margin:14px 22px 0}
+  .mhead{display:flex;align-items:center;gap:10px;padding:13px 15px;border-radius:var(--r);
+    border:1px solid var(--line);background:var(--surface);cursor:pointer;user-select:none}
+  .moment.open .mhead{border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .mdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .mhead .mtitle{flex:1;font-size:14.5px;font-weight:700;letter-spacing:-.1px}
+  .mhead .mtag{font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:3px 8px;border-radius:6px}
+  .mhead .chev{color:var(--text-3);font-size:13px;transition:.2s;flex:0 0 auto}
+  .moment.open .mhead .chev{transform:rotate(90deg)}
+  .mbody{display:none;border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r) var(--r);
+    background:var(--surface-2);padding:12px 12px 14px}
+  .moment.open .mbody{display:block}
+
+  /* moment color variants */
+  .m-ao .mdot{background:var(--ao)} .m-ao .mtag{background:var(--ao-soft);color:var(--ao)}
+  .m-do .mdot{background:var(--do)} .m-do .mtag{background:var(--do-soft);color:var(--do)}
+  .m-dt .mdot{background:var(--dt)} .m-dt .mtag{background:var(--dt-soft);color:var(--dt)}
+  .m-at .mdot{background:var(--at)} .m-at .mtag{background:var(--at-soft);color:var(--at)}
+
+  /* ---------- phase card ---------- */
+  .phase{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;margin-bottom:9px}
+  .phase:last-child{margin-bottom:0}
+  .phead{display:flex;align-items:center;gap:8px}
+  .pname{flex:1;border:0;outline:0;background:transparent;font-family:var(--f);font-size:13.5px;font-weight:700;color:var(--text);padding:2px 0}
+  .pdel{border:0;background:transparent;color:var(--text-3);font-size:15px;cursor:pointer;padding:4px 8px;margin:-2px -4px;line-height:1;border-radius:6px}
+  .pdel:active{background:var(--surface-2)}
+  .pdel:hover{color:var(--do)}
+  .princ{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+  .prow{display:flex;align-items:flex-start;gap:8px}
+  .prow .b{flex:0 0 auto;color:var(--text-3);font-weight:800;font-size:13px;line-height:1.5;margin-top:1px}
+  .prow textarea{flex:1;border:0;outline:0;resize:none;background:transparent;font-family:var(--f);
+    font-size:13.5px;line-height:1.5;color:var(--text);min-height:20px;overflow:hidden}
+  .prow textarea::placeholder{color:var(--text-3)}
+  .prow .x{flex:0 0 auto;border:0;background:transparent;color:var(--text-3);font-size:15px;cursor:pointer;
+    padding:4px 7px;margin:-3px -5px -3px 0;opacity:.5;transition:.15s;line-height:1;border-radius:6px}
+  .prow .x:active{transform:scale(.9);background:var(--surface-2)}
+  @media (hover:hover){ .prow .x{opacity:0} .prow:hover .x{opacity:1} }
+  .addprinc{margin-top:7px;border:1px dashed var(--line);background:transparent;color:var(--text-2);
+    font-family:var(--f);font-size:12.5px;font-weight:600;border-radius:7px;padding:7px 10px;cursor:pointer;width:100%}
+  .addprinc:active{background:var(--surface-2)}
+
+  /* snapshot */
+  .snapwrap{margin-top:9px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .snapthumb{position:relative;width:88px;height:58px;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+  .snapthumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .snapthumb .rm{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;border:0;
+    background:rgba(22,24,28,.62);color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .attachbtn{border:1px solid var(--line);background:var(--surface);color:var(--accent);
+    font-family:var(--f);font-size:12px;font-weight:700;border-radius:7px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .attachbtn:active{background:var(--accent-soft)}
+
+  .addphase{margin-top:4px;border:1px dashed var(--line);background:transparent;color:var(--text-2);
+    font-family:var(--f);font-size:12.5px;font-weight:700;border-radius:8px;padding:9px;cursor:pointer;width:100%}
+  .addphase:active{background:var(--surface)}
+
+  .foot{padding:22px 22px max(26px,env(safe-area-inset-bottom));text-align:center;color:var(--text-3);font-size:11px;font-weight:600;letter-spacing:.02em}
+
+  /* ---------- small-phone fit: reclaim side gutters so content has room ---------- */
+  @media (max-width:430px){
+    .gmtop{padding-left:16px;padding-right:16px}
+    .idcard,.moment{margin-left:13px;margin-right:13px}
+    .foot{padding-left:16px;padding-right:16px}
+  }
+  .mhead:active{background:var(--surface-2)}
+
+  /* ---------- print / document view ---------- */
+  @media print{
+    @page{margin:14mm}
+    body{background:#fff}
+    .gmtop,.iconbtn,.addphase,.addprinc,.pdel,.prow .x,.attachbtn,.snapthumb .rm,.foot{display:none!important}
+    .phone,.stage{height:auto;overflow:visible;display:block}
+    .moment .mbody{display:block!important}
+    .moment{break-inside:avoid;margin:18px 0 0}
+    .idcard,.moment{margin-left:0;margin-right:0}
+    .mhead{cursor:default}
+    .mhead .chev{display:none}
+    .phase{break-inside:avoid}
+    .prdoc{display:block!important}
+    /* drop unfilled rows so the printed document reads clean */
+    .prow:has(textarea:placeholder-shown){display:none}
+    .idcard:has(textarea:placeholder-shown){display:none}
+    .idcard .chev,.idcard .idprev{display:none!important}
+    .idcard textarea{display:block!important;max-height:none!important;overflow:visible!important;padding-top:2px}
+  }
+  .prdoc{display:none}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="stage" id="stage">
+
+    <div class="gmtop">
+      <div class="t">
+        <h1>게임 모델</h1>
+        <small id="subline">우리 팀이 4국면에서 어떻게 플레이하는가</small>
+      </div>
+      <button class="iconbtn" id="btnDoc" title="문서 보기 / 내보내기">⤓</button>
+    </div>
+
+    <!-- title shown only when printing -->
+    <div class="prdoc" style="padding:0 0 4px"><h1 style="font-size:22px;font-weight:800" id="prTitle">게임 모델</h1></div>
+
+    <div class="idcard" id="idcard">
+      <div class="idhead" id="idHead">
+        <span class="lab">팀 정체성</span>
+        <span class="idprev" id="idPrev"></span>
+        <span class="chev">▸</span>
+      </div>
+      <textarea id="identity" placeholder="우리 팀을 한 문장으로 — 예: 적극적으로 전방에서 압박하고, 측면을 통해 빠르게 전진한다. (선택)"></textarea>
+    </div>
+
+    <div id="moments"></div>
+
+    <div class="foot">프로토타입 v1 · 모든 내용은 코치가 직접 정의합니다 · 평가·추천 없음</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var LS='cs_gamemodel_v1';
+  var stage=document.getElementById('stage');
+  var momentsEl=document.getElementById('moments');
+  var identityEl=document.getElementById('identity');
+
+  // ---- default skeleton (baseline, not ceiling) ----
+  function seed(){
+    var uid=function(){return 'p'+Math.random().toString(36).slice(2,8)};
+    var P=function(name){return {id:uid(),name:name,principles:[''],snap:null}};
+    return {
+      identity:'',
+      open:{ao:true,do:false,dt:false,at:false},
+      moments:[
+        {key:'ao',name:'공격 조직',tag:'IN POSSESSION',phases:[P('빌드업'),P('전진 · 전개'),P('침투 · 마무리')]},
+        {key:'do',name:'수비 조직',tag:'OUT OF POSS',phases:[P('전방 압박'),P('미드 블록'),P('로우 블록')]},
+        {key:'dt',name:'공격 → 수비 전환',tag:'TRANSITION −',phases:[P('즉시 반응 (역압박)'),P('후퇴 · 재정비')]},
+        {key:'at',name:'수비 → 공격 전환',tag:'TRANSITION +',phases:[P('빠른 역습'),P('점유 안정화')]}
+      ]
+    };
+  }
+
+  var model;
+  try{ var raw=localStorage.getItem(LS); model = raw?JSON.parse(raw):seed(); }
+  catch(e){ model=seed(); }
+  if(!model.open) model.open={ao:true,do:false,dt:false,at:false};
+
+  function save(){ try{localStorage.setItem(LS,JSON.stringify(model));}catch(e){} try{parent.postMessage({source:'gamemodel',type:'cloudSave',kind:'gamemodel'},'*');}catch(_){} }
+
+  function autosize(ta){ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
+
+  function render(){
+    momentsEl.innerHTML='';
+    model.moments.forEach(function(m){
+      var sec=document.createElement('div');
+      sec.className='moment m-'+m.key+(model.open[m.key]?' open':'');
+
+      var head=document.createElement('div');
+      head.className='mhead';
+      head.innerHTML='<span class="mdot"></span><span class="mtitle"></span>'
+        +'<span class="mtag"></span><span class="chev">▸</span>';
+      head.querySelector('.mtitle').textContent=m.name;
+      head.querySelector('.mtag').textContent=m.tag;
+      head.addEventListener('click',function(){
+        model.open[m.key]=!model.open[m.key]; sec.classList.toggle('open'); save();
+      });
+      sec.appendChild(head);
+
+      var body=document.createElement('div');
+      body.className='mbody';
+
+      m.phases.forEach(function(ph){ body.appendChild(phaseCard(m,ph)); });
+
+      var addp=document.createElement('button');
+      addp.className='addphase'; addp.textContent='＋ 국면 추가';
+      addp.addEventListener('click',function(){
+        m.phases.push({id:'p'+Math.random().toString(36).slice(2,8),name:'새 국면',principles:[''],snap:null});
+        save(); render();
+      });
+      body.appendChild(addp);
+
+      sec.appendChild(body);
+      momentsEl.appendChild(sec);
+    });
+    // size all textareas after insert
+    requestAnimationFrame(function(){
+      [].forEach.call(document.querySelectorAll('.prow textarea'),autosize);
+      autosize(identityEl);
+    });
+  }
+
+  function phaseCard(m,ph){
+    var card=document.createElement('div'); card.className='phase';
+
+    // header: editable name + delete
+    var head=document.createElement('div'); head.className='phead';
+    var nm=document.createElement('input'); nm.className='pname'; nm.value=ph.name;
+    nm.addEventListener('input',function(){ph.name=nm.value;save();});
+    var del=document.createElement('button'); del.className='pdel'; del.innerHTML='✕'; del.title='국면 삭제';
+    del.addEventListener('click',function(){
+      if(!confirm('이 국면을 삭제할까요?')) return;
+      var i=m.phases.indexOf(ph); if(i>-1)m.phases.splice(i,1); save(); render();
+    });
+    head.appendChild(nm); head.appendChild(del); card.appendChild(head);
+
+    // principles
+    var princ=document.createElement('div'); princ.className='princ';
+    ph.principles.forEach(function(_,idx){ princ.appendChild(princRow(ph,idx)); });
+    card.appendChild(princ);
+
+    var addpr=document.createElement('button'); addpr.className='addprinc'; addpr.textContent='＋ 원칙 추가';
+    addpr.addEventListener('click',function(){ ph.principles.push(''); save();
+      princ.appendChild(princRow(ph,ph.principles.length-1));
+      var tas=princ.querySelectorAll('textarea'); tas[tas.length-1].focus();
+    });
+    card.appendChild(addpr);
+
+    // snapshot
+    var snapwrap=document.createElement('div'); snapwrap.className='snapwrap';
+    function paintSnap(){
+      snapwrap.innerHTML='';
+      if(ph.snap && ph.snap.thumb){
+        var t=document.createElement('div'); t.className='snapthumb';
+        t.innerHTML='<img src="'+ph.snap.thumb+'" alt="작전판"><button class="rm" title="첨부 제거">✕</button>';
+        t.querySelector('.rm').addEventListener('click',function(){ ph.snap=null; save(); paintSnap(); });
+        snapwrap.appendChild(t);
+      }
+      var ab=document.createElement('button'); ab.className='attachbtn';
+      ab.innerHTML=(ph.snap&&ph.snap.thumb)?'⟳ 작전판 다시 첨부':'＋ 작전판 첨부';
+      ab.addEventListener('click',function(){ requestSnap(m,ph); });
+      snapwrap.appendChild(ab);
+    }
+    paintSnap();
+    ph._paintSnap=paintSnap;
+    card.appendChild(snapwrap);
+
+    return card;
+  }
+
+  function princRow(ph,idx){
+    var row=document.createElement('div'); row.className='prow';
+    var b=document.createElement('span'); b.className='b'; b.textContent='·';
+    var ta=document.createElement('textarea'); ta.rows=1; ta.value=ph.principles[idx]||'';
+    ta.placeholder='이 국면에서 우리는…';
+    ta.addEventListener('input',function(){ ph.principles[idx]=ta.value; autosize(ta); save(); });
+    var x=document.createElement('button'); x.className='x'; x.innerHTML='✕';
+    x.addEventListener('click',function(){
+      ph.principles.splice(idx,1); if(ph.principles.length===0)ph.principles.push(''); save();
+      // re-render this card's principle block
+      var princ=row.parentNode; princ.innerHTML=''; ph.principles.forEach(function(_,i){princ.appendChild(princRow(ph,i));});
+      requestAnimationFrame(function(){[].forEach.call(princ.querySelectorAll('textarea'),autosize);});
+    });
+    row.appendChild(b); row.appendChild(ta); row.appendChild(x);
+    return row;
+  }
+
+  // ---- identity (collapsible, collapsed by default) ----
+  var idcard=document.getElementById('idcard');
+  var idHead=document.getElementById('idHead');
+  var idPrev=document.getElementById('idPrev');
+  identityEl.value=model.identity||'';
+  if(model.idOpen===undefined) model.idOpen=false;
+  function updateIdPrev(){
+    var v=(model.identity||'').trim();
+    idPrev.textContent = v ? v : '입력하기';
+    idPrev.classList.toggle('placeholder', !v);
+  }
+  function applyIdOpen(){
+    idcard.classList.toggle('open', !!model.idOpen);
+    if(model.idOpen) requestAnimationFrame(function(){ autosize(identityEl); });
+  }
+  updateIdPrev(); applyIdOpen();
+  idHead.addEventListener('click',function(){ model.idOpen=!model.idOpen; applyIdOpen(); save(); });
+  identityEl.addEventListener('input',function(){ model.identity=identityEl.value; autosize(identityEl); updateIdPrev(); save(); });
+
+  // ---- snapshot bridge with the tactics board ----
+  var pending=null; // {momentKey, phaseId}
+  function requestSnap(m,ph){
+    pending={momentKey:m.key,phaseId:ph.id};
+    try{ parent.postMessage({source:'gamemodel',type:'openBoard',snap:(ph.snap&&ph.snap.snap)||null},'*'); }catch(e){}
+  }
+  window.addEventListener('message',function(e){
+    var d=e.data||{};
+    if(d.type==='boardResult' && pending){
+      var m=model.moments.filter(function(x){return x.key===pending.momentKey;})[0];
+      if(m){
+        var ph=m.phases.filter(function(x){return x.id===pending.phaseId;})[0];
+        if(ph){ ph.snap={thumb:d.thumb,snap:d.snap}; save(); if(ph._paintSnap)ph._paintSnap(); }
+      }
+      pending=null;
+    } else if(d.type==='boardCancel'){ pending=null; }
+  });
+
+  // ---- document view / export ----
+  document.getElementById('btnDoc').addEventListener('click',function(){
+    // make sure everything visible for print, then call print
+    var prevOpen=JSON.parse(JSON.stringify(model.open));
+    document.getElementById('prTitle').textContent = (model.identity? '게임 모델' : '게임 모델');
+    window.print();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

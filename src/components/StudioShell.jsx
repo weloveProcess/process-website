@@ -11,16 +11,18 @@ import {
   restoreStateKind,
 } from '../lib/boards'
 
-const STATE_KINDS = ['matchnotes', 'match', 'schedule']
+const STATE_KINDS = ['matchnotes', 'match', 'schedule', 'gamemodel']
 
 // 로그아웃 시 비우는 스튜디오 작업 데이터(다음 사용자에게 새지 않도록).
 // UI 환경설정(cs_devmode·cs_onboard_v1)은 유지한다.
 const STUDIO_LOCAL_KEYS = [
   'tactics_plays_v1',
   'training_sessions_v1',
+  'training_session_cur_v1',
   'cs_matchnotes',
   'cs_match_v1',
   'process_coach_v1',
+  'cs_gamemodel_v1',
 ]
 function clearStudioLocal() {
   for (const k of STUDIO_LOCAL_KEYS) {
@@ -30,18 +32,32 @@ function clearStudioLocal() {
   }
 }
 
+const APPS = [
+  { id: 'board', label: '보드' },
+  { id: 'process', label: '일정' },
+  { id: 'gamemodel', label: '게임모델' },
+]
+
 const HINTS = {
   board: '전술·세션을 그리고, 애니메이션·영상으로 내보내세요',
   process: '경기일(MD) 기준 자동 주기화 · 훈련 블록에서 작전판 첨부 가능',
+  gamemodel: '4국면별 우리 팀의 플레이 원칙을 정리하고 문서로 내보내세요',
+}
+
+const SRC = {
+  board: '/studio/board.html',
+  process: '/studio/process.html',
+  gamemodel: '/studio/gamemodel.html',
 }
 
 export default function StudioShell() {
   const { user } = useAuth()
-  const [app, setApp] = useState('board') // 'board' | 'process'
+  const [app, setApp] = useState('board') // 'board' | 'process' | 'gamemodel'
   const [dev, setDev] = useState('auto') // 'auto' | 'phone'
   const [focus, setFocus] = useState(false)
   const boardRef = useRef(null)
   const processRef = useRef(null)
+  const gamemodelRef = useRef(null)
   const [boardLoaded, setBoardLoaded] = useState(false)
 
   // 메시지 핸들러가 항상 최신 로그인 상태를 보도록 ref 로 보관
@@ -51,20 +67,27 @@ export default function StudioShell() {
   }, [user])
   // 앱 저장 신호를 종류별로 디바운스(autosave 폭주 방지)
   const saveTimers = useRef({})
+  // 보드에 캡처를 요청한 앱(process | gamemodel)
+  const captureReqRef = useRef('process')
 
-  // 두 iframe 을 새 데이터로 재로딩
+  // 세 iframe 을 새 데이터로 재로딩
   function reloadFrames() {
     setBoardLoaded(false)
-    if (boardRef.current) boardRef.current.src = '/studio/board.html'
-    if (processRef.current) processRef.current.src = '/studio/process.html'
+    if (boardRef.current) boardRef.current.src = SRC.board
+    if (processRef.current) processRef.current.src = SRC.process
+    if (gamemodelRef.current) gamemodelRef.current.src = SRC.gamemodel
   }
 
-  // 로그인 상태를 두 앱(iframe)에 알림 → 앱이 Supabase 사용 여부 결정
+  // 로그인 상태를 앱(iframe)들에 알림 → 앱이 Supabase 사용 여부 결정
   function broadcastAuth(win) {
     const enabled = !!userRef.current
     const targets = win
       ? [win]
-      : [boardRef.current?.contentWindow, processRef.current?.contentWindow]
+      : [
+          boardRef.current?.contentWindow,
+          processRef.current?.contentWindow,
+          gamemodelRef.current?.contentWindow,
+        ]
     for (const w of targets) {
       try {
         w?.postMessage({ type: 'dbAuth', enabled }, '*')
@@ -124,37 +147,44 @@ export default function StudioShell() {
     } catch (_) {}
   }
 
-  // 두 앱 사이 브리지 릴레이 (원본 셸의 message 핸들러 이식)
+  // 앱 사이 브리지 릴레이 (보드 ↔ 일정 ↔ 게임모델)
   useEffect(() => {
     function onMessage(e) {
       const d = e.data || {}
-      const board = boardRef.current
-      const proc = processRef.current
-      if (d.source === 'process' && d.type === 'openBoard') {
+      const board = boardRef.current?.contentWindow
+      const proc = processRef.current?.contentWindow
+      const gm = gamemodelRef.current?.contentWindow
+      if (
+        (d.source === 'process' || d.source === 'gamemodel') &&
+        d.type === 'openBoard'
+      ) {
+        captureReqRef.current = d.source
         setApp('board')
         try {
-          board?.contentWindow.postMessage(
-            { type: 'enterCapture', snap: d.snap },
-            '*'
-          )
+          board?.postMessage({ type: 'enterCapture', snap: d.snap }, '*')
         } catch (_) {}
       } else if (d.source === 'board' && d.type === 'capture') {
+        const reqr = captureReqRef.current
+        const tgt = reqr === 'gamemodel' ? gm : proc
         try {
-          proc?.contentWindow.postMessage(
+          tgt?.postMessage(
             { type: 'boardResult', thumb: d.thumb, snap: d.snap },
             '*'
           )
         } catch (_) {}
-        setApp('process')
+        setApp(reqr)
       } else if (d.source === 'board' && d.type === 'captureCancel') {
-        setApp('process')
+        const reqr = captureReqRef.current
+        if (reqr === 'gamemodel') {
+          try {
+            gm?.postMessage({ type: 'boardCancel' }, '*')
+          } catch (_) {}
+        }
+        setApp(reqr)
       } else if (d.source === 'board' && d.type === 'sendToWeek') {
         setApp('process')
         try {
-          proc?.contentWindow.postMessage(
-            { type: 'importSession', session: d.session },
-            '*'
-          )
+          proc?.postMessage({ type: 'importSession', session: d.session }, '*')
         } catch (_) {}
       } else if (d.source === 'board' && d.type === 'focusBoard') {
         setFocus(!!d.on)
@@ -162,7 +192,7 @@ export default function StudioShell() {
         // 항목별 저장/불러오기(배치·세션·내 구성) RPC
         handleDbRequest(d, e.source)
       } else if (d.type === 'cloudSave' && STATE_KINDS.includes(d.kind)) {
-        // 단일 상태(매치노트·경기정보·훈련일정) → 디바운스 후 Supabase upsert
+        // 단일 상태(매치노트·경기정보·일정·게임모델) → 디바운스 후 Supabase upsert
         if (!userRef.current) return
         const kind = d.kind
         clearTimeout(saveTimers.current[kind])
@@ -175,7 +205,7 @@ export default function StudioShell() {
     return () => window.removeEventListener('message', onMessage)
   }, [])
 
-  // 로그인 상태가 바뀌면 두 앱에 알림 + 로그아웃 전환이면 로컬 정리
+  // 로그인 상태가 바뀌면 앱들에 알림 + 로그아웃 전환이면 로컬 정리
   const prevUserIdRef = useRef(user?.id ?? null)
   useEffect(() => {
     const prev = prevUserIdRef.current
@@ -191,7 +221,7 @@ export default function StudioShell() {
 
   // 로그인하면 단일 상태를 동기화: 클라우드에 있으면 로컬로 복원,
   // 없으면(첫 로그인) 로컬을 클라우드에 seed. 항목별 데이터(배치/세션/구성)는
-  // 앱이 로그인 신호를 받아 직접 merge-up + 목록 새로고침한다.
+  // 앱이 로그인 신호를 받아 목록을 새로고침한다.
   const restoredRef = useRef(false)
   useEffect(() => {
     if (!user) {
@@ -208,7 +238,6 @@ export default function StudioShell() {
           if (data?.data && Object.keys(data.data).length) {
             if (restoreStateKind(kind, data.data)) wrote = true
           } else {
-            // 클라우드에 없으면 현재 로컬 상태를 올려둔다(seed)
             await saveStateKind(kind).catch(() => {})
           }
         } catch (_) {}
@@ -234,21 +263,21 @@ export default function StudioShell() {
         </div>
 
         <div className="cs-seg">
-          <button
-            className={app === 'board' ? 'on' : ''}
-            onClick={() => setApp('board')}
-          >
-            보드
-          </button>
-          <button
-            className={app === 'process' ? 'on' : ''}
-            onClick={() => setApp('process')}
-          >
-            주기화
-          </button>
+          {APPS.map((a) => (
+            <button
+              key={a.id}
+              className={app === a.id ? 'on' : ''}
+              onClick={() => setApp(a.id)}
+            >
+              {a.label}
+            </button>
+          ))}
         </div>
 
         <div className="cs-hint">{HINTS[app]}</div>
+
+        {/* 로그인 버튼은 디바이스 토글 왼쪽, 디바이스 토글은 맨 오른쪽 */}
+        <AuthBar />
 
         <div className="cs-devtoggle" title="화면 미리보기 전환">
           <button
@@ -274,8 +303,6 @@ export default function StudioShell() {
             </svg>
           </button>
         </div>
-
-        <AuthBar />
       </header>
 
       <div className="cs-frames">
@@ -285,7 +312,7 @@ export default function StudioShell() {
         <iframe
           ref={boardRef}
           title="작전판"
-          src="/studio/board.html"
+          src={SRC.board}
           allow="fullscreen"
           allowFullScreen
           style={{ display: app === 'board' ? 'block' : 'none' }}
@@ -297,8 +324,15 @@ export default function StudioShell() {
         <iframe
           ref={processRef}
           title="훈련 일정"
-          src="/studio/process.html"
+          src={SRC.process}
           style={{ display: app === 'process' ? 'block' : 'none' }}
+          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+        />
+        <iframe
+          ref={gamemodelRef}
+          title="게임 모델"
+          src={SRC.gamemodel}
+          style={{ display: app === 'gamemodel' ? 'block' : 'none' }}
           onLoad={(e) => broadcastAuth(e.target.contentWindow)}
         />
       </div>

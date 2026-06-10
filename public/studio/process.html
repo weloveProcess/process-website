@@ -1,4 +1,4 @@
-<!-- coach studio — 주기화 (프로토타입 v1) -->
+<!-- PROCESS — 주기화 (프로토타입 v1) -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
@@ -291,12 +291,13 @@
   .mview{padding:4px 22px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
   .mview .h{font-size:10px;color:var(--text-3);text-align:center;padding-bottom:4px;font-weight:600}
   .mcell{min-height:58px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);
-    display:flex;align-items:center;justify-content:center;padding:15px 4px 6px;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;align-items:stretch;padding:5px 5px 6px;position:relative;overflow:hidden;
     cursor:pointer;transition:border-color .12s,background .12s,box-shadow .12s}
   .mcell:hover{border-color:var(--accent);box-shadow:0 2px 9px rgba(0,0,0,.07)}
-  .mcell .mdate{position:absolute;top:4px;left:7px;font-size:9px;color:var(--text-3);font-weight:700;letter-spacing:.02em}
-  .mcell .mmd{position:absolute;top:4px;right:7px;font-size:8px;color:var(--text-3);font-weight:700;letter-spacing:.01em}
-  .mcell .mtxt{font-size:10px;color:var(--text);font-weight:600;text-align:center;line-height:1.15;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mcell .mhdr{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.05;flex:0 0 auto}
+  .mcell .mdate{font-size:9px;color:var(--text-3);font-weight:700;letter-spacing:.02em}
+  .mcell .mmd{font-size:8px;color:var(--text-3);font-weight:800;letter-spacing:.01em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mcell .mtxt{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text);font-weight:600;text-align:center;line-height:1.15;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
   .mcell.has{border-top:3px solid var(--tc,var(--line))}
   .mcell.m{border-color:var(--match-line);background:var(--match-soft);border-top:3px solid var(--match)}
   .mcell.m .mmd{color:var(--match)}
@@ -435,22 +436,39 @@
   @media (min-width:768px){
     .stage{padding-top:0}
     #entry{padding-top:8px}
-    /* 데스크탑: 콘텐츠를 '페이지'로 — 거터(뒷 배경)는 어둡게, 컬럼은 밝게 + 그림자.
-       헤더(흰색 셸 앱바) 아래에 또렷한 페이지가 놓여 헤더·내비와 어울리게 한다. */
+    /* 데스크탑: 콘텐츠를 '페이지'로 — 거터(뒷 배경)는 어둡게, 컬럼은 밝게 + 그림자 */
     html,body{background:#D4D7DD}
     .screen{background:var(--bg);box-shadow:0 0 0 1px var(--line),0 14px 44px rgba(16,24,40,.07);min-height:100dvh}
     .nav{background:rgba(255,255,255,.97)}
   }
+  .mpop{position:fixed;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 36px rgba(16,24,40,.20);padding:12px;display:flex;flex-direction:column;gap:8px;}
+  .mpop .mp-close{position:absolute;top:7px;right:9px;border:none;background:none;font-size:18px;color:var(--text-3);cursor:pointer;line-height:1;}
+  .mpop .mp-date{font-weight:700;font-size:13.5px;color:var(--text);padding-right:16px;}
+  .mpop .mp-list{display:flex;flex-direction:column;gap:5px;max-height:118px;overflow:auto;}
+  .mpop .mp-empty{font-size:12px;color:var(--text-3);}
+  .mpop .mp-item{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2);background:var(--accent-soft);border-radius:8px;padding:5px 7px;}
+  .mpop .mp-item.match{background:var(--match-soft);}
+  .mpop .mp-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:0 0 auto;}
+  .mpop .mp-dot.mt{background:var(--match);}
+  .mpop .mp-t{flex:1 1 auto;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mpop .mp-t b{color:var(--text-3);font-weight:600;margin-left:3px;}
+  .mpop .mp-x{border:none;background:none;color:var(--text-3);font-size:15px;cursor:pointer;padding:0 2px;line-height:1;}
+  .mpop .mp-seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .mpop .mp-seg button{flex:1;border:none;background:#fff;padding:7px 0;font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;}
+  .mpop .mp-seg button.on{background:var(--accent);color:#fff;}
+  .mpop .mp-actions{display:flex;gap:7px;}
+  .mpop .mp-add{flex:1;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:13px;border-radius:9px;padding:9px 0;cursor:pointer;}
+  .mpop .mp-more{border:1px solid var(--line);background:#fff;color:var(--text-2);font-size:12.5px;border-radius:9px;padding:9px 11px;cursor:pointer;}
 </style>
 
 <div class="phone">
   <div class="stage">
 
     <!-- ENTRY -->
-    <section id="entry" class="screen active">
+    <section id="entry" class="screen">
       <div class="brand">
-        <div class="wm"><b>coach studio</b></div>
-        <small style="letter-spacing:.04em">과정에 몰입하다</small>
+        <div class="wm"><b>PRO</b>CESS</div>
+        <small style="letter-spacing:.04em">과정에 몰입한다</small>
       </div>
       <div class="entryMain">
         <div class="ask"><h1>다음 경기까지 <b>며칠</b> 남았어요?</h1></div>
@@ -477,7 +495,7 @@
     </section>
 
     <!-- SCHEDULE -->
-    <section id="schedule" class="screen">
+    <section id="schedule" class="screen active">
       <div class="top"><h2><b>일정</b></h2><div class="mini">D-28 · 신평고전</div></div>
       <div class="toggle" id="vtoggle">
         <div data-v="day">일간</div><div data-v="week" class="on">주간</div><div data-v="month">월간</div>
@@ -937,7 +955,7 @@ function save(){
     const data={weeks:weeksMap, wk, templates:myTemplates, dday: dn?(parseInt(dn.value)||28):28, ddayLabel:ddayLabel};
     localStorage.setItem(STORE_KEY, JSON.stringify(data, (k,v)=> k==='_open'?undefined:(typeof v==='number'?Math.round(v*10)/10:v)));
   }catch(e){}
-  // 저장 시 부모(스튜디오 셸)에 알림 → 로그인 상태면 셸이 Supabase 에 동기화(디바운스)
+  // 저장 시 부모(스튜디오 셸)에 알림 → 로그인 상태면 셸이 디바운스 후 Supabase 에 동기화
   try{parent.postMessage({source:'process',type:'cloudSave',kind:'schedule'},'*');}catch(_){}
 }
 function loadState(){
@@ -1346,13 +1364,66 @@ function monthCellInfo(day){
   const t=(ts[0].aims||'훈련')+(ts.length>1?` +${ts.length-1}`:'');
   return {md:day.md||'', txt:t, match:false};
 }
-function monthDayClick(r,col){
+function monthGoEdit(r,col){
   if(!weeksMap[r]) weeksMap[r]=blankWeek();
   wk=r; week=weeksMap[wk]; recomputeMD();
-  document.querySelector('#vtoggle div[data-v="week"]').click();   // 편집 가능한 주간 뷰로 이동
+  document.querySelector('#vtoggle div[data-v="week"]').click();
   const day=week[col];
   if(day.match) openMatch(col);
-  else if((day.trainings||[]).length) openSession(col,0);          // 빈/OFF 날은 주간 뷰에서 +훈련·경기
+  else if((day.trainings||[]).length) openSession(col,0);
+}
+function monthDayClick(r,col,cellEl){ openMonthPop(r,col,cellEl); }
+let _mpop=null;
+function _mpEsc(s){return (''+(s==null?'':s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function closeMonthPop(){ if(_mpop){ _mpop.remove(); _mpop=null; document.removeEventListener('mousedown',_mpopOutside,true); document.removeEventListener('keydown',_mpopKey); } }
+function _mpopOutside(e){ if(_mpop && !_mpop.contains(e.target)) closeMonthPop(); }
+function _mpopKey(e){ if(e.key==='Escape') closeMonthPop(); }
+function _mpReopen(r,col){ renderMonth(); const cells=document.querySelectorAll('#monthGrid .mcell'); openMonthPop(r,col,cells[r*7+col]); }
+function monthDelEntry(r,col,kind,ti){
+  const W=weeksMap[r]; if(!W) return; const day=W[col];
+  if(kind==='match'){ delete day.match; }
+  else if(day.trainings){ day.trainings.splice(ti,1); }
+  if(!day.match && !(day.trainings&&day.trainings.length)){ day.rest=true; }
+  recomputeMD(W); save(); _mpReopen(r,col);
+}
+function monthQuickAdd(r,col,kind,detail){
+  const inp=_mpop&&_mpop.querySelector('.mp-inp'); const title=inp?inp.value.trim():'';
+  if(!weeksMap[r]) weeksMap[r]=blankWeek();
+  const W=weeksMap[r]; const day=W[col]; let ti=-1;
+  if(kind==='match'){ day.match={time:'15:00',opp:title}; day.rest=false; }
+  else { day.trainings=day.trainings||[]; day.trainings.push({time:SLOTS[day.trainings.length]||'18:00',players:'',aims:title,note:'',load:{rpe:5},blocks:[{phase:'웜업',theme:'',fmt:'',dur:PHASE_DUR['웜업'],desc:''}]}); ti=day.trainings.length-1; day.rest=false; }
+  recomputeMD(W); save();
+  if(detail){ closeMonthPop(); wk=r; week=weeksMap[wk]; document.querySelector('#vtoggle div[data-v="week"]').click(); if(kind==='match') openMatch(col); else openSession(col,ti); return; }
+  _mpReopen(r,col);
+}
+function openMonthPop(r,col,cellEl){
+  closeMonthPop();
+  const W=weeksMap[r]||blankWeek(); const day=W[col]||{trainings:[]};
+  const dt=dateOf(r*7+col); const wdays=['일','월','화','수','목','금','토'];
+  const dlabel=(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+wdays[dt.getDay()]+')';
+  let listHtml='';
+  if(day.match){ listHtml+='<div class="mp-item match"><span class="mp-dot mt"></span><span class="mp-t" onclick="monthGoEdit('+r+','+col+')">경기 · '+_mpEsc(day.match.opp||'상대 미정')+' <b>'+_mpEsc(day.match.time||'')+'</b></span><button class="mp-x" onclick="monthDelEntry('+r+','+col+',\'match\')">×</button></div>'; }
+  (day.trainings||[]).forEach((t,ti)=>{ listHtml+='<div class="mp-item"><span class="mp-dot"></span><span class="mp-t" onclick="monthGoEdit('+r+','+col+')">훈련 · '+_mpEsc(t.aims||'주제 미정')+' <b>'+_mpEsc(t.time||'')+'</b></span><button class="mp-x" onclick="monthDelEntry('+r+','+col+',\'tr\','+ti+')">×</button></div>'; });
+  if(!listHtml) listHtml='<div class="mp-empty">아직 일정이 없어요</div>';
+  const p=document.createElement('div'); p.className='mpop';
+  p.innerHTML='<button class="mp-close" onclick="closeMonthPop()">×</button>'
+    +'<div class="mp-date">'+dlabel+'</div>'
+    +'<div class="mp-list">'+listHtml+'</div>'
+    +'<div class="mp-seg"><button class="on" data-k="tr">훈련</button><button data-k="match">경기</button></div>'
+    +'<input class="mp-inp metainput" placeholder="제목·주제 (예: 빌드업 / 상대팀)">'
+    +'<div class="mp-actions"><button class="mp-add">추가</button><button class="mp-more">자세히 ▸</button></div>';
+  document.body.appendChild(p); _mpop=p;
+  let kind='tr';
+  p.querySelectorAll('.mp-seg button').forEach(bt=>bt.onclick=()=>{p.querySelectorAll('.mp-seg button').forEach(x=>x.classList.remove('on'));bt.classList.add('on');kind=bt.dataset.k;});
+  p.querySelector('.mp-add').onclick=()=>monthQuickAdd(r,col,kind,false);
+  p.querySelector('.mp-more').onclick=()=>monthQuickAdd(r,col,kind,true);
+  const inp=p.querySelector('.mp-inp'); inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); monthQuickAdd(r,col,kind,false); } });
+  const anchor=cellEl||document.getElementById('monthGrid'); const cr=anchor.getBoundingClientRect();
+  const pw=Math.min(300, window.innerWidth-16); p.style.width=pw+'px'; p.style.zIndex='9999';
+  let left=cr.left; if(left+pw>window.innerWidth-8) left=window.innerWidth-8-pw; if(left<8) left=8;
+  let top=cr.bottom+6; const ph=p.getBoundingClientRect().height||260; if(top+ph>window.innerHeight-8) top=Math.max(8,cr.top-ph-6);
+  p.style.left=left+'px'; p.style.top=top+'px';
+  setTimeout(function(){ document.addEventListener('mousedown',_mpopOutside,true); document.addEventListener('keydown',_mpopKey); inp.focus(); },0);
 }
 function renderMonth(){
   const g=document.getElementById('monthGrid'); g.innerHTML='';
@@ -1367,15 +1438,15 @@ function renderMonth(){
     for(let col=0;col<7;col++){
       const day=wkArr[col];
       const info=monthCellInfo(day);
-      const dt=dateOf(r*7+col); const dateStr=(dt.getMonth()+1)+'/'+dt.getDate();
+      const dt=dateOf(r*7+col); const dateStr=dt.getDate()===1?((dt.getMonth()+1)+'/1'):(''+dt.getDate());
       let txt=info.txt, off=false;
       if(!info.match && !txt && wkHas){ txt='OFF'; off=true; }       // 내용 있는 주의 빈 날 = 쉬는날
       const themeName=(day&&!info.match&&day.trainings&&day.trainings[0])?day.trainings[0].aims:'';
       const tc=themeName?distColorAx(themeName):'';
       const c=document.createElement('div'); c.className='mcell'+(info.match?' m':'')+(off?' off':'')+(tc?' has':'');
       if(tc) c.style.setProperty('--tc', tc);
-      c.innerHTML=`<span class="mdate">${dateStr}</span>${info.md?`<span class="mmd">${info.md}</span>`:''}<div class="mtxt">${txt||''}</div>`;
-      c.onclick=()=>monthDayClick(r,col);
+      c.innerHTML=`<div class="mhdr"><span class="mdate">${dateStr}</span>${info.md?`<span class="mmd">${info.md}</span>`:''}</div><div class="mtxt">${txt||''}</div>`;
+      c.onclick=(ev)=>monthDayClick(r,col,ev.currentTarget);
       g.appendChild(c);
     }
   }
@@ -1478,13 +1549,13 @@ function themeCounts(){
 function pHeader(sub){
   const dday=parseInt(document.getElementById('dayN').value)||28;
   const m=week.find(d=>d.match); const opp=(m&&m.match.opp)?m.match.opp:'경기';
-  return `<div class="phd"><div class="pwm"><b>PRO</b>CESS</div>
+  return `<div class="phd"><div class="pwm"><b>일정</b></div>
     <div class="pmeta">${sub}<strong>${opp} · D-${dday}</strong></div></div>`;
 }
 function pFooter(){
   const d=new Date();
   const ds=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-  return `<footer><span>coach studio — 코치를 위한 훈련 설계</span><span>${ds}</span></footer>`;
+  return `<footer><span>PROCESS — 코치를 위한 훈련 설계</span><span>${ds}</span></footer>`;
 }
 function pMixBlock(title){
   const {c,t}=themeCounts(); if(!t)return '';
@@ -1569,17 +1640,17 @@ function reviewDocHTML(){
 function exportPDF(kind){
   const el=document.getElementById('printDoc');
   let html, filename;
-  if(kind==='review'){ html=reviewDocHTML(); filename='coachstudio_부하리포트.pdf'; }
-  else if(kind==='day'){ html=dayDocHTML(); filename='coachstudio_일간.pdf'; }
-  else if(kind==='month'){ html=monthDocHTML(); filename='coachstudio_월간.pdf'; }
-  else { html=scheduleDocHTML(); filename='coachstudio_주간.pdf'; }
+  if(kind==='review'){ html=reviewDocHTML(); filename='process_부하리포트.pdf'; }
+  else if(kind==='day'){ html=dayDocHTML(); filename='process_일간.pdf'; }
+  else if(kind==='month'){ html=monthDocHTML(); filename='process_월간.pdf'; }
+  else { html=scheduleDocHTML(); filename='process_주간.pdf'; }
   el.innerHTML = html;
 
   // 실제 브라우저에서 파일을 직접 열면 → 클릭 한 번에 바로 PDF 저장.
   // 아티팩트 미리보기는 캔버스 캡처가 막혀 빈 PDF가 되므로, 그 경우 인쇄창으로 안전 폴백.
   // B2: 외부 의존 없이 브라우저 인쇄 → "PDF로 저장". @media print가 #printDoc만 인쇄하도록 처리함.
   const prevTitle=document.title;
-  document.title=(filename||'coachstudio').replace(/\.pdf$/,'');   // 저장 대화창 기본 파일명
+  document.title=(filename||'process').replace(/\.pdf$/,'');   // 저장 대화창 기본 파일명
   const restore=()=>{document.title=prevTitle;};
   window.addEventListener('afterprint',restore,{once:true});
   setTimeout(restore,30000);
@@ -1817,10 +1888,9 @@ function doResetWeek(){
 
 /* ---------- 내 구성 (코치가 저장한 주를 불러오기) ---------- */
 function tplDbOn(){return !!(window.StudioDB&&window.StudioDB.enabled);}
-// 로그인 상태면 Supabase 에서 내 구성 목록을 가져와 myTemplates 를 채운다
+// 로그인: 본인 클라우드 목록만(실패 시 빈 목록). 로컬 폴백 안 함 → 사용자 간 누수 방지.
 async function loadTemplatesFromDb(){
   if(!tplDbOn())return;
-  // 로그인: 본인 클라우드 목록만(실패 시 빈 목록). 로컬로 폴백하지 않음 → 사용자 간 누수 방지.
   const r=await StudioDB.list('template', true); // week 데이터 작아 목록에 함께 받음
   myTemplates=(r&&r.ok)?r.rows.map(x=>x.data).filter(Boolean):[];
 }
@@ -1836,7 +1906,6 @@ function delTpl(id){ const t=myTemplates.find(x=>x.id===id);
   myTemplates=myTemplates.filter(t=>t.id!==id); if(__tplSel===id)__tplSel=null; save();
   if(tplDbOn()&&t)StudioDB.del('template',t.name);
   renderTemplateSheet(); }
-// 로그인 상태가 켜지면 내 구성 목록을 클라우드 기준으로 갱신(로컬을 올리지 않음 — 계정 오염 방지)
 window.addEventListener('studiodb-auth',function(e){ if(e.detail&&e.detail.enabled){ loadTemplatesFromDb(); } });
 function renderTemplateSheet(){
   const hasContent=week.some(d=>d.match||(d.trainings&&d.trainings.length));
@@ -1880,7 +1949,7 @@ function saveTplPrompt(){
 function saveTpl(){
   const el=document.getElementById('tplName');
   const nm=(el&&el.value||'').trim()||'내 구성';
-  const tpl=compact({id:'t'+Date.now(), name:nm, week:weeksMap[wk]||blankWeek()}); // 좌표 압축
+  const tpl=compact({id:'t'+Date.now(), name:nm, week:weeksMap[wk]||blankWeek()});
   myTemplates.push(tpl);
   save();                                          // 로컬
   if(tplDbOn())StudioDB.upsert('template',nm,tpl); // 클라우드
@@ -1918,6 +1987,7 @@ renderPreview(parseInt(dayInput.value)||28);
 renderPhaseBanner();
 updateTopMini();
 renderWeek(); renderMonth(); renderReview();
+go('schedule');
 </script>
 <style>.boardrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 4px}
 .boardthumb{width:88px;height:56px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#15172b;flex:0 0 auto}

@@ -87,7 +87,8 @@ export async function dbDelete(kind, title) {
 const STATE_KEY = {
   matchnotes: 'cs_matchnotes', // 작전판: 매치노트
   match: 'cs_match_v1', // 작전판: 경기 정보
-  schedule: 'process_coach_v1', // 주기화: 훈련 일정 작업본(weeks·dday 등)
+  schedule: 'process_coach_v1', // 일정: 훈련 일정 작업본(weeks·dday 등)
+  gamemodel: 'cs_gamemodel_v1', // 게임모델: 4국면 플레이 원칙 문서
 }
 const STATE_TITLE = '_state' // 단일 상태 행의 고정 title
 
