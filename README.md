@@ -10,6 +10,9 @@
 
 > 이 저장소는 **개발할 때마다 이 섹션에 내용을 누적 기록**합니다.
 
+### 2026-06-10 — favicon 설정
+- `index.html` 에 `<link rel="icon" href="/icon-512.png">` 추가 (favicon = public/icon-512.png).
+
 ### 2026-06-10 — 미팅 모드 전체화면 제거
 - 보드 **미팅 탭**이 브라우저 전체화면(`requestFullscreen`)으로 진입하던 동작 제거.
   이제 **헤더(셸 앱바)만 숨기는** 포커스 모드만 동작(`setFocus`→`focusBoard` 메시지). 
