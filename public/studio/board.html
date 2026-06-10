@@ -2282,10 +2282,9 @@ function init(){
   $("sizeUp").onclick=()=>scaleSel(1.18);$("sizeDown").onclick=()=>scaleSel(1/1.18);
   $("rotRight").onclick=()=>rotateSel(15);$("rotLeft").onclick=()=>rotateSel(-15);
   function setFocus(on){document.body.classList.toggle("focus-board",on);try{parent.postMessage({source:"board",type:"focusBoard",on:on},"*");}catch(_){}}
-  function enterFocus(){document.querySelectorAll(".popmenu.on").forEach(function(m){m.classList.remove("on");});setFocus(true);
-    try{var el=document.documentElement,rf=el.requestFullscreen||el.webkitRequestFullscreen;if(rf){var pr=rf.call(el);if(pr&&pr.catch)pr.catch(function(){});}}catch(_){}}
-  function exitFocus(){setFocus(false);
-    try{var ex=document.exitFullscreen||document.webkitExitFullscreen;if((document.fullscreenElement||document.webkitFullscreenElement)&&ex)ex.call(document);}catch(_){}}
+  // 미팅 모드: 브라우저 전체화면(requestFullscreen) 대신 헤더만 숨김(setFocus → 셸 앱바 숨김)
+  function enterFocus(){document.querySelectorAll(".popmenu.on").forEach(function(m){m.classList.remove("on");});setFocus(true);}
+  function exitFocus(){setFocus(false);}
   if($("focusBtn"))$("focusBtn").onclick=enterFocus;
   if($("focusExit"))$("focusExit").onclick=exitFocus;
   if($("focusTab"))$("focusTab").onclick=enterFocus;
