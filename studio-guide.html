@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROCESS STUDIO 사용법</title>
+<meta name="theme-color" content="#070708">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#16181C;--dim:#5C6068;--faint:#9097A0;--line:#E5E7EB;--blue:#3a6df0;--bg:#F7F8FA;--soft:#EDF2FE}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Hiragino Sans','Malgun Gothic',sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding:28px 20px 60px}
+header{padding:8px 0 22px}
+.hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.wm{font-weight:200;font-size:22px;letter-spacing:.04em}
+.wm b{font-weight:800}
+.langs{display:flex;gap:2px;border:1px solid var(--line);border-radius:8px;padding:2px;background:#fff;flex:0 0 auto}
+.langs button{background:transparent;border:0;color:var(--dim);font-size:12px;font-weight:700;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
+.langs button.on{background:var(--ink);color:#fff}
+h1{font-size:24px;font-weight:900;margin:6px 0 4px;word-break:keep-all}
+.sub{color:var(--dim);font-size:14px;word-break:keep-all}
+nav.toc{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 6px}
+nav.toc a{font-size:12.5px;font-weight:700;color:var(--blue);background:var(--soft);border-radius:99px;padding:6px 13px;text-decoration:none}
+section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 20px;margin-top:14px}
+h2{font-size:16.5px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+h2 .n{flex:0 0 auto;width:24px;height:24px;border-radius:8px;background:var(--ink);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.lead{color:var(--dim);font-size:13.5px;margin-bottom:12px;word-break:keep-all}
+h3{font-size:13.5px;font-weight:800;margin:16px 0 4px}
+p,li{font-size:13.5px;color:var(--ink);word-break:keep-all}
+ul{list-style:none;margin:4px 0}
+li{padding-left:16px;position:relative;margin:5px 0}
+li::before{content:"·";position:absolute;left:4px;color:var(--blue);font-weight:800}
+kbd{display:inline-block;background:#F1F2F4;border:1px solid var(--line);border-radius:6px;padding:1px 8px;font-size:12px;font-weight:700;font-family:inherit}
+.tip{background:#FFF8E6;border:1px solid #F2DFAC;border-radius:10px;padding:10px 13px;font-size:12.5px;color:#7A5B12;margin-top:12px;word-break:keep-all}
+.warn{background:#FDECEC;border:1px solid #F5C2C0;border-radius:10px;padding:10px 13px;font-size:12.5px;color:#8E2A26;margin-top:12px;word-break:keep-all}
+footer{text-align:center;color:var(--faint);font-size:12px;margin-top:28px;word-break:keep-all}
+.L{display:none}
+.L.on{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="hrow">
+    <div class="wm"><b>PRO</b>CESS <b>STUDIO</b></div>
+    <div class="langs" id="langSw">
+      <button data-lang="ko" class="on">한국어</button><button data-lang="ja">日本語</button><button data-lang="en">EN</button>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 한국어 ================= -->
+<div class="L on" data-l="ko">
+<h1>사용법 안내</h1>
+<div class="sub">작전판 · 훈련 디자인 · 일정 · 게임모델 · 스카우트 — 다섯 가지 도구가 하나로. 설치 없이 브라우저에서 바로 쓰고, 폰·태블릿·PC 어디서나 열립니다.</div>
+<nav class="toc"><a href="#ko0">시작하기</a><a href="#ko1">보드</a><a href="#ko2">훈련 디자인</a><a href="#ko3">라이브러리</a><a href="#ko4">일정</a><a href="#ko5">게임모델</a><a href="#ko6">스카우트</a><a href="#ko7">공유</a><a href="#ko8">백업</a></nav>
+
+<section id="ko0"><h2><span class="n">0</span>시작하기</h2>
+<p class="lead">상단에 탭 5개와 버튼 2개가 전부입니다.</p>
+<ul>
+<li><kbd>보드 · 훈련 디자인 · 일정 · 게임모델 · 스카우트</kbd> — 도구 전환 탭</li>
+<li><kbd>공유</kbd> — 지금 보고 있는 작전판·세션·주간 일정을 링크로 복사</li>
+<li><kbd>⚙ 설정</kbd> — 언어(한·日·EN), 백업 내려받기/복원, 화면 미리보기</li>
+</ul>
+<div class="tip">📱 폰에서 자주 쓴다면 브라우저 메뉴의 <b>"홈 화면에 추가"</b>를 해두세요. 앱처럼 열립니다.</div>
+<div class="warn">데이터는 이 기기 브라우저에 저장됩니다. 기기를 바꾸거나 브라우저 데이터를 지우면 사라지니, <b>⚙ → 백업 내려받기</b>를 습관으로 해주세요.</div>
+</section>
+
+<section id="ko1"><h2><span class="n">1</span>보드 — 작전판</h2>
+<p class="lead">전술을 그리고, 애니메이션으로 만들고, 이미지·영상으로 내보냅니다.</p>
+<h3>선수 배치</h3>
+<ul>
+<li>상단 벤치의 번호 알을 <b>끌어다</b> 놓거나, 필드를 비운 상태에서 <b>포메이션(4-4-2 등)</b>으로 11명 자동 배치</li>
+<li>알 <b>더블클릭(더블탭)</b> → 선택: 크기 −/＋, 복제, 좌우/상하 대칭, 삭제</li>
+<li><b>공도 더블탭하면 크기 조절</b>이 됩니다</li>
+</ul>
+<h3>그리기</h3>
+<ul>
+<li>툴바: 이동 / 런(점선) / 패스(직선) / 드리블(물결) / 직선 / 점선 / 펜 / 구역 / 사각형 / 텍스트 / 지우개</li>
+<li><kbd>보기 ▾</kbd>에 그리드(5레인·20존·삼등분)·명단, <kbd>더보기 ▾</kbd>에 저장·내보내기</li>
+</ul>
+<h3>애니메이션</h3>
+<ul>
+<li><kbd>▶ 애니메이션</kbd> → <kbd>＋ 장면</kbd>으로 장면을 추가하며 알을 옮기면 자동 보간</li>
+<li><kbd>👻</kbd> 어니언스킨: 이전 장면 위치가 반투명으로 겹쳐 보여 다음 장면을 만들기 쉬워요</li>
+<li>완성되면 재생·반복·속도 조절, <b>영상(MP4/webm) 저장</b></li>
+</ul>
+<h3>모드</h3>
+<ul>
+<li><kbd>⏱ 경기</kbd> — 경기 시계 오버레이 (다시 누르면 해제)</li>
+<li><kbd>⛶ 미팅</kbd> — 전체화면 보드 (선수단 미팅용)</li>
+</ul>
+</section>
+
+<section id="ko2"><h2><span class="n">2</span>훈련 디자인 — 오늘 세션 만들기</h2>
+<p class="lead">드릴 블록을 쌓아 한 세션을 완성하고, 링크·PDF로 선수단에 전달합니다.</p>
+<ul>
+<li><kbd>＋ 훈련 디자인하기</kbd> — 작전판에 그림을 그리며 새 드릴 작성</li>
+<li><kbd>📚 라이브러리</kbd> — 저장해둔 드릴·기본 템플릿을 <b>"세션에 추가"</b>로 쌓기</li>
+<li>각 드릴은 <b>분 × 세트</b>로 시간 설정 (예: 3분 × 3세트 = 9분), 국면·RPE 지정</li>
+<li>드릴 카드의 <kbd>✎ 편집</kbd> — 그림과 텍스트(목적·구성·방법·코칭 포인트) 모두 수정</li>
+<li>하단에 <b>총 시간 · 부하 · 국면 분포 바</b>가 자동 집계</li>
+</ul>
+<h3>완성한 세션은</h3>
+<ul>
+<li><kbd>저장</kbd> — 세션 라이브러리에 보관, <kbd>불러오기</kbd>로 재사용</li>
+<li><kbd>공유</kbd>(상단) — 선수들에게 링크로 (받는 사람은 읽기 전용으로 봄)</li>
+<li><kbd>PDF로 내보내기</kbd> — 인쇄·파일 전달용</li>
+<li><kbd>주간으로 보내기</kbd> — 일정의 원하는 요일에 바로 배치</li>
+</ul>
+</section>
+
+<section id="ko3"><h2><span class="n">3</span>라이브러리 — 드릴 은행</h2>
+<ul>
+<li><kbd>＋ 기본 템플릿 14개</kbd> — 웜업 4종 + 론도·포지셔닝 게임·게겐프레스·역습 등 실전 드릴</li>
+<li>필터: 검색 · <b>국면</b> · 내 드릴/기본 · 강도 — <b>국면을 고르면 어울리는 웜업이 맨 위에</b> 추천됩니다</li>
+<li><kbd>편집</kbd> — 텍스트 수정 + <kbd>✏️ 그림 편집</kbd>으로 작전판 그림까지</li>
+<li>세션의 드릴 카드에서 <kbd>📚</kbd> 버튼 → 내 드릴로 저장</li>
+</ul>
+</section>
+
+<section id="ko4"><h2><span class="n">4</span>일정 — 주간·월간 훈련 계획</h2>
+<h3>주간</h3>
+<ul>
+<li>경기 있는 날 <kbd>경기</kbd> 표시 → 모든 날에 <b>MD(경기까지 며칠)</b>가 자동으로 붙고 권장 강도가 잡힙니다</li>
+<li><kbd>＋ 훈련</kbd> → 위저드: ① 국면·강도 선택 → ② <b>추천 드릴</b>이 떠서 탭 한 번으로 블록 추가</li>
+<li>빈 주에는 <kbd>↩ 지난주 그대로 복사</kbd> — 복사 후 바꿀 부분만 수정</li>
+<li>훈련에 <b>게임모델 원칙</b>을 태그로 연결할 수 있어요</li>
+</ul>
+<h3>월간 / 그래프</h3>
+<ul>
+<li>월간: 달력형(1일부터), <b>좌우 스와이프</b>로 달 이동, 오늘 강조</li>
+<li>그래프: 주별 부하 흐름, <b>지난주 대비 %</b>(급증 시 빨강 경고), 요일별 부하, 국면 배분, <b>원칙 커버리지</b></li>
+<li>주간·월간·이 날 모두 PDF 내보내기 지원</li>
+</ul>
+</section>
+
+<section id="ko5"><h2><span class="n">5</span>게임모델 — 우리 팀의 철학</h2>
+<ul>
+<li>공격 조직 / 수비 조직 / 공수 전환 4국면 × 세부 국면별로 <b>플레이 원칙</b>을 문장으로 정리</li>
+<li>원칙마다 <kbd>＋ 작전판 첨부</kbd>로 그림 연결</li>
+<li>여기 적은 원칙이 <b>일정의 훈련 태그</b>와 <b>그래프 커버리지</b>로 이어집니다 — 과정이 쌓여 철학이 되는 구조</li>
+<li>완성본은 PDF로 내보내 코칭스태프와 공유</li>
+</ul>
+</section>
+
+<section id="ko6"><h2><span class="n">6</span>스카우트 — 선수 평가·보고</h2>
+<ul>
+<li><kbd>속성</kbd> 탭에서 우리 팀이 쓰는 평가 어휘를 만들고 → <kbd>포지션</kbd>별 목표 레벨(1~5) 설정</li>
+<li><kbd>선수</kbd> 등록(우리 선수/스카우트 대상) 후 속성별 현재 레벨 입력</li>
+<li><kbd>보고서</kbd> — 필드에서 포지션 클릭 → 선수 여러 명 선택 → <b>목표 대비 비교</b> → 추천 등급과 함께 PDF</li>
+</ul>
+</section>
+
+<section id="ko7"><h2><span class="n">7</span>공유 — 링크 하나로 전달</h2>
+<ul>
+<li>상단 <kbd>공유</kbd>: <b>보드</b>에서 누르면 현재 작전판, <b>훈련 디자인</b>에서는 오늘 세션, <b>일정</b>에서는 이번 주 훈련표가 링크로 복사</li>
+<li>받은 사람은 앱 설치 없이 <b>읽기 전용</b>으로 봅니다</li>
+<li>코치가 받았다면 "내 작전판으로 불러오기"로 가져갈 수 있어요</li>
+</ul>
+<div class="tip">서버에 저장되지 않습니다 — 데이터가 링크 자체에 압축되어 담겨요. 링크를 아는 사람만 볼 수 있습니다.</div>
+</section>
+
+<section id="ko8"><h2><span class="n">8</span>백업 — 데이터 지키기</h2>
+<ul>
+<li><kbd>⚙ → ⤓</kbd> 모든 데이터를 JSON 한 파일로 내려받기</li>
+<li><kbd>⚙ → ⤒</kbd> 백업 파일 선택 → 복원 (현재 데이터를 덮어씁니다)</li>
+<li>다른 기기로 옮길 때도 이 방법을 쓰면 됩니다</li>
+</ul>
+</section>
+
+<footer><b>PRO</b>CESS STUDIO · 과정에 몰입하라<br>불편한 점·바라는 점은 언제든 알려주세요. 빠르게 고칩니다.</footer>
+</div>
+
+<!-- ================= 日本語 ================= -->
+<div class="L" data-l="ja">
+<h1>使い方ガイド</h1>
+<div class="sub">戦術ボード · トレーニングデザイン · スケジュール · ゲームモデル · スカウト — 5つのツールをひとつに。インストール不要、スマホ・タブレット・PCのブラウザですぐ使えます。</div>
+<nav class="toc"><a href="#ja0">はじめに</a><a href="#ja1">ボード</a><a href="#ja2">トレーニングデザイン</a><a href="#ja3">ライブラリ</a><a href="#ja4">スケジュール</a><a href="#ja5">ゲームモデル</a><a href="#ja6">スカウト</a><a href="#ja7">共有</a><a href="#ja8">バックアップ</a></nav>
+
+<section id="ja0"><h2><span class="n">0</span>はじめに</h2>
+<p class="lead">上部にあるのはタブ5つとボタン2つだけです。</p>
+<ul>
+<li><kbd>ボード · トレーニングデザイン · スケジュール · ゲームモデル · スカウト</kbd> — ツール切り替えタブ</li>
+<li><kbd>共有</kbd> — 今見ているボード・セッション・週間日程をリンクとしてコピー</li>
+<li><kbd>⚙ 設定</kbd> — 言語（한·日·EN）、バックアップのダウンロード/復元、画面プレビュー</li>
+</ul>
+<div class="tip">📱 スマホでよく使うなら、ブラウザメニューの<b>「ホーム画面に追加」</b>を。アプリのように開けます。</div>
+<div class="warn">データはこの端末のブラウザに保存されます。端末を替えたりブラウザデータを消すと失われるため、<b>⚙ → バックアップのダウンロード</b>を習慣にしてください。</div>
+</section>
+
+<section id="ja1"><h2><span class="n">1</span>ボード — 戦術ボード</h2>
+<p class="lead">戦術を描き、アニメーションにして、画像・動画で書き出します。</p>
+<h3>選手の配置</h3>
+<ul>
+<li>上部ベンチの番号トークンを<b>ドラッグ</b>するか、空のフィールドで<b>フォーメーション（4-4-2など）</b>から11人を自動配置</li>
+<li>トークンを<b>ダブルタップ</b> → 選択：サイズ −/＋、複製、左右/上下反転、削除</li>
+<li><b>ボールもダブルタップでサイズ調整</b>できます</li>
+</ul>
+<h3>描く</h3>
+<ul>
+<li>ツールバー：移動 / ラン（点線） / パス（直線） / ドリブル（波線） / 直線 / 点線 / ペン / ゾーン / 四角形 / テキスト / 消しゴム</li>
+<li><kbd>表示 ▾</kbd>にグリッド（5レーン・20ゾーン・3分割）・名簿、<kbd>もっと見る ▾</kbd>に保存・書き出し</li>
+</ul>
+<h3>アニメーション</h3>
+<ul>
+<li><kbd>▶ アニメーション</kbd> → <kbd>＋ 場面</kbd>で場面を追加しながらトークンを動かすと自動補間</li>
+<li><kbd>👻</kbd> オニオンスキン：前の場面の位置が半透明で重なり、次の場面が作りやすい</li>
+<li>完成したら再生・リピート・速度調整、<b>動画（MP4/webm）保存</b></li>
+</ul>
+<h3>モード</h3>
+<ul>
+<li><kbd>⏱ 試合</kbd> — 試合タイマーのオーバーレイ（もう一度押すと解除）</li>
+<li><kbd>⛶ ミーティング</kbd> — フルスクリーンボード（チームミーティング用）</li>
+</ul>
+</section>
+
+<section id="ja2"><h2><span class="n">2</span>トレーニングデザイン — 今日のセッション作り</h2>
+<p class="lead">ドリルブロックを積んでセッションを完成させ、リンク・PDFでチームに届けます。</p>
+<ul>
+<li><kbd>＋ トレーニングをデザイン</kbd> — ボードに図を描きながら新しいドリルを作成</li>
+<li><kbd>📚 ライブラリ</kbd> — 保存済みドリル・基本テンプレートを<b>「セッションに追加」</b>で積む</li>
+<li>各ドリルは<b>分 × セット</b>で時間設定（例：3分 × 3セット = 9分）、局面・RPE指定</li>
+<li>ドリルカードの<kbd>✎ 編集</kbd> — 図とテキスト（目的・構成・方法・コーチングポイント）を両方修正</li>
+<li>下部に<b>合計時間 · 負荷 · 局面分布バー</b>が自動集計</li>
+</ul>
+<h3>完成したセッションは</h3>
+<ul>
+<li><kbd>保存</kbd> — セッションライブラリに保管、<kbd>読み込む</kbd>で再利用</li>
+<li><kbd>共有</kbd>（上部） — 選手にリンクで（受け取った人は読み取り専用で閲覧）</li>
+<li><kbd>PDFに書き出し</kbd> — 印刷・ファイル送付用</li>
+<li><kbd>週間に送る</kbd> — スケジュールの好きな曜日に配置</li>
+</ul>
+</section>
+
+<section id="ja3"><h2><span class="n">3</span>ライブラリ — ドリルバンク</h2>
+<ul>
+<li><kbd>＋ 基本テンプレート14件</kbd> — ウォームアップ4種 + ロンド・ポジショニングゲーム・ゲーゲンプレス・カウンターなど実戦ドリル</li>
+<li>フィルター：検索 · <b>局面</b> · マイドリル/基本 · 強度 — <b>局面を選ぶと合うウォームアップが最上部に</b>提案されます</li>
+<li><kbd>編集</kbd> — テキスト修正 + <kbd>✏️ 図を編集</kbd>でボードの図まで</li>
+<li>セッションのドリルカードの<kbd>📚</kbd>ボタン → マイドリルとして保存</li>
+</ul>
+</section>
+
+<section id="ja4"><h2><span class="n">4</span>スケジュール — 週間・月間計画</h2>
+<h3>週間</h3>
+<ul>
+<li>試合のある日に<kbd>試合</kbd>を表示 → 全日に<b>MD（試合まで何日）</b>が自動で付き、推奨強度が決まります</li>
+<li><kbd>＋ トレーニング</kbd> → ウィザード：① 局面・強度を選択 → ② <b>おすすめドリル</b>が表示され、タップ一回でブロック追加</li>
+<li>空の週は<kbd>↩ 先週をそのままコピー</kbd> — コピーして変える部分だけ修正</li>
+<li>トレーニングに<b>ゲームモデルの原則</b>をタグとして連携できます</li>
+</ul>
+<h3>月間 / グラフ</h3>
+<ul>
+<li>月間：カレンダー形式（1日から）、<b>左右スワイプ</b>で月移動、今日を強調</li>
+<li>グラフ：週ごとの負荷推移、<b>先週比 %</b>（急増は赤の警告）、曜日別負荷、局面配分、<b>原則カバレッジ</b></li>
+<li>週間・月間・この日、すべてPDF書き出し対応</li>
+</ul>
+</section>
+
+<section id="ja5"><h2><span class="n">5</span>ゲームモデル — チームの哲学</h2>
+<ul>
+<li>攻撃の組織 / 守備の組織 / 攻守の切替の4局面 × 細部局面ごとに<b>プレー原則</b>を文章で整理</li>
+<li>原則ごとに<kbd>＋ ボードを添付</kbd>で図を連携</li>
+<li>ここに書いた原則が<b>スケジュールのトレーニングタグ</b>と<b>グラフのカバレッジ</b>につながります — 過程が積み重なって哲学になる構造</li>
+<li>完成版はPDFで書き出してコーチングスタッフと共有</li>
+</ul>
+</section>
+
+<section id="ja6"><h2><span class="n">6</span>スカウト — 選手評価・レポート</h2>
+<ul>
+<li><kbd>属性</kbd>タブでチームの評価語彙を作り → <kbd>ポジション</kbd>別に目標レベル（1〜5）を設定</li>
+<li><kbd>選手</kbd>を登録（自チーム/スカウト対象）し、属性ごとに現在レベルを入力</li>
+<li><kbd>レポート</kbd> — フィールドでポジションをクリック → 選手を複数選択 → <b>目標との比較</b> → 推薦グレード付きPDF</li>
+</ul>
+</section>
+
+<section id="ja7"><h2><span class="n">7</span>共有 — リンクひとつで届ける</h2>
+<ul>
+<li>上部の<kbd>共有</kbd>：<b>ボード</b>で押すと現在の戦術ボード、<b>トレーニングデザイン</b>では今日のセッション、<b>スケジュール</b>では今週の訓練表がリンクとしてコピーされます</li>
+<li>受け取った人はアプリのインストールなしで<b>読み取り専用</b>で閲覧</li>
+<li>コーチが受け取った場合は「自分のボードに読み込む」で取り込めます</li>
+</ul>
+<div class="tip">サーバーには保存されません — データはリンク自体に圧縮されて入っています。リンクを知っている人だけが見られます。</div>
+</section>
+
+<section id="ja8"><h2><span class="n">8</span>バックアップ — データを守る</h2>
+<ul>
+<li><kbd>⚙ → ⤓</kbd> 全データをJSONファイルひとつでダウンロード</li>
+<li><kbd>⚙ → ⤒</kbd> バックアップファイルを選択 → 復元（現在のデータを上書きします）</li>
+<li>別の端末へ移すときもこの方法でOK</li>
+</ul>
+</section>
+
+<footer><b>PRO</b>CESS STUDIO · 過程に没頭せよ<br>不便な点・ご要望はいつでもお知らせください。すぐ直します。</footer>
+</div>
+
+<!-- ================= English ================= -->
+<div class="L" data-l="en">
+<h1>How to use</h1>
+<div class="sub">Board · Session design · Schedule · Game model · Scout — five tools in one. No install needed; runs in the browser on phone, tablet and PC.</div>
+<nav class="toc"><a href="#en0">Getting started</a><a href="#en1">Board</a><a href="#en2">Session design</a><a href="#en3">Library</a><a href="#en4">Schedule</a><a href="#en5">Game model</a><a href="#en6">Scout</a><a href="#en7">Sharing</a><a href="#en8">Backup</a></nav>
+
+<section id="en0"><h2><span class="n">0</span>Getting started</h2>
+<p class="lead">The header is just five tabs and two buttons.</p>
+<ul>
+<li><kbd>Board · Session design · Schedule · Game Model · Scout</kbd> — tool tabs</li>
+<li><kbd>Share</kbd> — copies what you're looking at (board, session or weekly plan) as a link</li>
+<li><kbd>⚙ Settings</kbd> — language (한·日·EN), backup download/restore, screen preview</li>
+</ul>
+<div class="tip">📱 If you use it on your phone, tap <b>"Add to Home Screen"</b> in the browser menu — it opens like an app.</div>
+<div class="warn">Data is stored in this device's browser. It's lost if you switch devices or clear browser data — make <b>⚙ → backup download</b> a habit.</div>
+</section>
+
+<section id="en1"><h2><span class="n">1</span>Board — tactics board</h2>
+<p class="lead">Draw tactics, animate them, export as image or video.</p>
+<h3>Placing players</h3>
+<ul>
+<li><b>Drag</b> numbered tokens from the bench, or auto-place 11 players from a <b>formation (4-4-2 etc.)</b> on an empty field</li>
+<li><b>Double-tap</b> a token → select: size −/＋, duplicate, mirror, delete</li>
+<li><b>Double-tap the ball to resize it</b> too</li>
+</ul>
+<h3>Drawing</h3>
+<ul>
+<li>Toolbar: move / run (dashed) / pass (straight) / dribble (wavy) / line / dashed line / pen / zone / rectangle / text / eraser</li>
+<li><kbd>View ▾</kbd> holds grids (5 lanes · 20 zones · thirds) and roster; <kbd>More ▾</kbd> holds save & export</li>
+</ul>
+<h3>Animation</h3>
+<ul>
+<li><kbd>▶ Animation</kbd> → add scenes with <kbd>＋ Scene</kbd>, move tokens, and it interpolates automatically</li>
+<li><kbd>👻</kbd> Onion skin: the previous scene shows as a translucent ghost, making the next scene easy to build</li>
+<li>Play, loop, adjust speed, and <b>save as video (MP4/webm)</b></li>
+</ul>
+<h3>Modes</h3>
+<ul>
+<li><kbd>⏱ Match</kbd> — match clock overlay (tap again to exit)</li>
+<li><kbd>⛶ Meeting</kbd> — fullscreen board for team meetings</li>
+</ul>
+</section>
+
+<section id="en2"><h2><span class="n">2</span>Session design — build today's session</h2>
+<p class="lead">Stack drill blocks into a session, then send it as a link or PDF.</p>
+<ul>
+<li><kbd>＋ Design a session</kbd> — create a new drill while drawing on the board</li>
+<li><kbd>📚 Library</kbd> — stack saved drills and starter templates with <b>"Add to session"</b></li>
+<li>Each drill uses <b>minutes × sets</b> (e.g., 3 min × 3 sets = 9 min), with phase and RPE</li>
+<li><kbd>✎ Edit</kbd> on a drill card — edit both the diagram and the text (objective, setup, method, coaching points)</li>
+<li>The footer auto-totals <b>time · load · phase distribution</b></li>
+</ul>
+<h3>When the session is done</h3>
+<ul>
+<li><kbd>Save</kbd> — stored in the session library, reuse with <kbd>Load</kbd></li>
+<li><kbd>Share</kbd> (header) — send to players as a link (they see a read-only view)</li>
+<li><kbd>Export to PDF</kbd> — for print or file handoff</li>
+<li><kbd>Send to week</kbd> — drop it onto any day of the schedule</li>
+</ul>
+</section>
+
+<section id="en3"><h2><span class="n">3</span>Library — your drill bank</h2>
+<ul>
+<li><kbd>＋ 14 starter templates</kbd> — 4 warm-ups plus rondos, positioning games, counter-press, counters and more</li>
+<li>Filters: search · <b>phase</b> · my drills/built-in · intensity — <b>pick a phase and matching warm-ups float to the top</b></li>
+<li><kbd>Edit</kbd> — text editing plus <kbd>✏️ Edit diagram</kbd> for the board drawing</li>
+<li>The <kbd>📚</kbd> button on a session drill card saves it as your own drill</li>
+</ul>
+</section>
+
+<section id="en4"><h2><span class="n">4</span>Schedule — weekly & monthly planning</h2>
+<h3>Weekly</h3>
+<ul>
+<li>Mark <kbd>Match</kbd> on matchdays → every day gets an <b>MD (days to match)</b> tag with recommended intensity</li>
+<li><kbd>＋ Training</kbd> → wizard: ① pick phase & intensity → ② <b>suggested drills</b> appear; one tap adds a block</li>
+<li>On an empty week, <kbd>↩ Copy last week</kbd> — then change only what differs</li>
+<li>Tag trainings with your <b>game model principles</b></li>
+</ul>
+<h3>Monthly / Graph</h3>
+<ul>
+<li>Monthly: true calendar (from the 1st), <b>swipe</b> to change months, today highlighted</li>
+<li>Graph: weekly load trend, <b>% vs last week</b> (red warning on spikes), load by day, phase mix, <b>principle coverage</b></li>
+<li>Weekly, monthly and daily views all export to PDF</li>
+</ul>
+</section>
+
+<section id="en5"><h2><span class="n">5</span>Game model — your team's philosophy</h2>
+<ul>
+<li>Write <b>play principles</b> across the four phases (attacking, defending, both transitions) and their sub-phases</li>
+<li>Attach a board diagram to any principle with <kbd>＋ Attach board</kbd></li>
+<li>Principles flow into <b>schedule tags</b> and the <b>graph's coverage</b> — the process accumulates into philosophy</li>
+<li>Export the finished model as a PDF for your staff</li>
+</ul>
+</section>
+
+<section id="en6"><h2><span class="n">6</span>Scout — player evaluation & reports</h2>
+<ul>
+<li>Build your team's evaluation vocabulary in <kbd>Attributes</kbd> → set target levels (1–5) per <kbd>Position</kbd></li>
+<li>Register <kbd>Players</kbd> (own squad / targets) and enter current levels per attribute</li>
+<li><kbd>Report</kbd> — click a position on the field → select players → <b>compare against targets</b> → PDF with a recommendation grade</li>
+</ul>
+</section>
+
+<section id="en7"><h2><span class="n">7</span>Sharing — one link delivers it</h2>
+<ul>
+<li>The header <kbd>Share</kbd> button copies the current <b>board</b>, today's <b>session</b>, or this week's <b>schedule</b> — depending on the tab you're on</li>
+<li>Recipients view it <b>read-only</b>, no install needed</li>
+<li>A coach can pull a shared board into their own with "Load into my board"</li>
+</ul>
+<div class="tip">Nothing is stored on a server — the data is compressed into the link itself. Only people with the link can see it.</div>
+</section>
+
+<section id="en8"><h2><span class="n">8</span>Backup — protect your data</h2>
+<ul>
+<li><kbd>⚙ → ⤓</kbd> downloads all data as a single JSON file</li>
+<li><kbd>⚙ → ⤒</kbd> pick a backup file → restore (overwrites current data)</li>
+<li>Use the same method to move to another device</li>
+</ul>
+</section>
+
+<footer><b>PRO</b>CESS STUDIO · Obsess over the process<br>Tell us what's awkward or missing — we fix fast.</footer>
+</div>
+
+</div>
+<script>
+const TITLES={ko:'PROCESS STUDIO 사용법',ja:'PROCESS STUDIO 使い方ガイド',en:'PROCESS STUDIO — How to use'};
+function setLang(l){
+  if(!TITLES[l])return;
+  document.documentElement.lang=l;
+  document.title=TITLES[l];
+  document.querySelectorAll('.L').forEach(d=>d.classList.toggle('on',d.dataset.l===l));
+  document.querySelectorAll('#langSw button').forEach(b=>b.classList.toggle('on',b.dataset.lang===l));
+  try{localStorage.setItem('guide-lang',l);}catch(e){}
+}
+document.querySelectorAll('#langSw button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+(function(){
+  let s=null;try{s=localStorage.getItem('guide-lang');}catch(e){}
+  const nv=(navigator.language||'ko').slice(0,2);
+  setLang(s||(['ko','ja','en'].includes(nv)?nv:'en'));
+})();
+</script>
+</body>
+</html>

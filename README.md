@@ -38,3 +38,4 @@ python3 -m http.server 8000
 - 게임모델 카피를 "당신의 게임 필로소피" 프레임으로 수정, 번들 가격에 "₩98,000 절약" 표시
 - 강사 사진 노출 제거(텍스트만), 타이틀 "코치와 선수를 위한 학습 플랫폼"으로 갱신
 - favicon.png 추가, no-JS 폴백 및 prefers-reduced-motion 대응
+- `studio-guide.html` 추가 — PROCESS STUDIO 사용법 안내 페이지 (한·일·영 3개 언어, 모바일 대응). 스튜디오 앱 내장 가이드와 동일 내용의 웹 버전
