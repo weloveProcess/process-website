@@ -15,7 +15,8 @@
 - **Vite 멀티페이지**(`vite.config.js` `rollupOptions.input`): `/`=마케팅 홈, `/studio/`=React 스튜디오,
   `/guide/`=사용법 가이드. 기존 React 엔트리를 `studio/index.html` 로 이동, 루트는 마케팅 홈으로 교체.
 - **마케팅 홈(`index.html`)**: 한·일·영 다국어(전체 텍스트노드 자동 번역), 마이프로세스·매니페스토 섹션,
-  강의 신청(Google Form). "스튜디오 열기"를 외부 URL → 사이트 내 `/studio/` 로 연결, nav에 `사용법`→`/guide/` 추가.
+  강의 신청(Google Form). "스튜디오 열기"를 외부 URL → 사이트 내 `/studio/` 로 연결(같은 탭 이동),
+  nav에 `사용법`→`/guide/` 추가. (외부 링크 마이프로세스·강의신청은 새 탭 유지)
 - **사용법 가이드(`guide/index.html`)**: 작전판·훈련 디자인·일정·게임모델·스카우트 사용법, 한·일·영.
 - 구 셸 `public/studio/index.html` 삭제(새 `studio/index.html` 엔트리와 충돌 방지). `favicon.png` 추가.
 
