@@ -10,6 +10,15 @@
 
 > 이 저장소는 **개발할 때마다 이 섹션에 내용을 누적 기록**합니다.
 
+### 2026-06-11 — 멀티페이지 통합(마케팅 홈 + 가이드)
+- 별도 브랜치(`feat/home-i18n-myprocess`, `feat/studio-guide`)의 기능을 develop 구조에 맞게 통합.
+- **Vite 멀티페이지**(`vite.config.js` `rollupOptions.input`): `/`=마케팅 홈, `/studio/`=React 스튜디오,
+  `/guide/`=사용법 가이드. 기존 React 엔트리를 `studio/index.html` 로 이동, 루트는 마케팅 홈으로 교체.
+- **마케팅 홈(`index.html`)**: 한·일·영 다국어(전체 텍스트노드 자동 번역), 마이프로세스·매니페스토 섹션,
+  강의 신청(Google Form). "스튜디오 열기"를 외부 URL → 사이트 내 `/studio/` 로 연결, nav에 `사용법`→`/guide/` 추가.
+- **사용법 가이드(`guide/index.html`)**: 작전판·훈련 디자인·일정·게임모델·스카우트 사용법, 한·일·영.
+- 구 셸 `public/studio/index.html` 삭제(새 `studio/index.html` 엔트리와 충돌 방지). `favicon.png` 추가.
+
 ### 2026-06-10 — favicon 설정
 - `index.html` 에 `<link rel="icon" href="/icon-512.png">` 추가 (favicon = public/icon-512.png).
 
