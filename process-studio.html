@@ -1304,14 +1304,16 @@
       var origEq=null; try{ var bc=doc.getElementById('benchCat'); if(bc){ var pp=bc.querySelectorAll('button'); for(var qi=0;qi<pp.length;qi++){ if(T(pp[qi])==='장비'){ origEq=pp[qi]; break; } } } }catch(e){}
       function eqOn(){ return origEq && (''+origEq.className).indexOf('on')>=0; }
       function benchOpen(){ var b=doc.getElementById('bench'); return !!(b && win.getComputedStyle(b).display!=='none'); }
+      function liftPanels(){ var tbE=doc.getElementById('boardToolbar'); var th=tbE?Math.round(tbE.getBoundingClientRect().height):47; ['drawPanel','bench'].forEach(function(id){ var p=doc.getElementById(id); if(p&&win.getComputedStyle(p).display!=='none'){ try{ p.style.setProperty('transform','translateY(calc(-100% - '+(th+8)+'px))','important'); }catch(e){} } }); }
+      function liftSoon(){ setTimeout(liftPanels,90); setTimeout(liftPanels,240); }
       if(origEq) origEq.style.display='none';
       var team=doc.createElement('button'); team.className='btn ghost'; team.id='ps-group-team'; team.type='button'; team.innerHTML='👥 팀';
       var tool=doc.createElement('button'); tool.className='btn ghost'; tool.id='ps-group-tool'; tool.type='button'; tool.innerHTML='✏️ 도구';
       var setg=mk('ps-group-set','설정');
       groups=[setg];
-      team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); setTimeout(function(){ if(benchOpen()&&eqOn()&&origEq) origEq.click(); },60); });
-      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); });
-      try{ var dp=doc.getElementById('drawPanel'); if(dp&&origEq){ var eqp=doc.createElement('button'); eqp.className='btn ghost'; eqp.id='ps-eq-proxy'; eqp.type='button'; eqp.innerHTML='🔺 장비'; eqp.style.marginLeft='8px'; eqp.addEventListener('click',function(ev){ ev.stopPropagation(); if(!benchOpen()){ if(benchTog) benchTog.click(); } setTimeout(function(){ if(!eqOn()&&origEq) origEq.click(); },60); }); dp.appendChild(eqp); } }catch(e){}
+      team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); setTimeout(function(){ if(benchOpen()&&eqOn()&&origEq) origEq.click(); },60); liftSoon(); });
+      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); liftSoon(); });
+      try{ var dp=doc.getElementById('drawPanel'); if(dp&&origEq){ var eqp=doc.createElement('button'); eqp.className='btn ghost'; eqp.id='ps-eq-proxy'; eqp.type='button'; eqp.innerHTML='🔺 장비'; eqp.style.marginLeft='8px'; eqp.addEventListener('click',function(ev){ ev.stopPropagation(); if(!benchOpen()){ if(benchTog) benchTog.click(); } setTimeout(function(){ if(!eqOn()&&origEq) origEq.click(); },60); liftSoon(); }); dp.appendChild(eqp); } }catch(e){}
       var spm=setg.querySelector('.popmenu');
       spm.appendChild(sec('팀 구성'));
       [0,1,2].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
