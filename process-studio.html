@@ -1337,7 +1337,7 @@
   function run(){
     if(applied) return true;
     var doc=boardDoc(); if(!doc) return false;
-    try{ if(!doc.getElementById('ps-tb-bottom')){ var stb=doc.createElement('style'); stb.id='ps-tb-bottom'; stb.textContent='#boardView{justify-content:flex-start;}#boardToolbar{order:90;border-top:1px solid var(--line,#e2e4e8);border-bottom:none;margin-top:6px;}#boardToolbar .popmenu{transform:translateY(calc(-100% - 47px)) !important;}#boardToolbar .swatches{transform:translateY(calc(-100% - 50px)) !important;}#drawPanel,#bench{transform:translateY(calc(-100% - 47px)) !important;}'; (doc.head||doc.documentElement).appendChild(stb); } }catch(e){}
+    try{ if(!doc.getElementById('ps-tb-bottom')){ var stb=doc.createElement('style'); stb.id='ps-tb-bottom'; stb.textContent='#boardView{justify-content:flex-start;}#boardToolbar{order:90;border-top:1px solid var(--line,#e2e4e8);border-bottom:none;margin-top:6px;}#boardToolbar .popmenu{transform:translateY(calc(-100% - 47px)) !important;}#boardToolbar .swatches{transform:translateY(calc(-100% - 50px)) !important;}#bench{flex-wrap:wrap !important;height:auto !important;max-height:none !important;row-gap:6px !important;align-items:center !important;}#ps-team-ctl{order:-1;}#drawPanel,#bench{transform:translateY(calc(-100% - 47px)) !important;}'; (doc.head||doc.documentElement).appendChild(stb); } }catch(e){}
     try{ attachOneOpen(doc); }catch(e){}
     try{ attachGrassKeeper(doc); }catch(e){}
     var view=find(doc,function(e){ var t=T(e); if(t.indexOf('보기')<0||t.indexOf('사용법')>=0||t.indexOf('더보기')>=0||t.length>7) return false; var w=e.getBoundingClientRect().width; return w>20&&w<160; });
