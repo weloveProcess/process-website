@@ -1256,12 +1256,52 @@
     stripes.sort(function(a,b){ return parseFloat(a.getAttribute('x')||0)-parseFloat(b.getAttribute('x')||0); });
     stripes.forEach(function(r,i){ r.setAttribute('fill', Math.floor(i/2)%2===0?DARK:LIGHT); });
   }
+  var psPitchN=1;
+  function applyPitches(doc,n){
+    try{
+      var board=doc.getElementById('board'); if(!board) return;
+      var world=board.querySelector('#world'); if(!world) return;
+      var NS='http://www.w3.org/2000/svg', W=1110, H=740;
+      var old=world.querySelector('#ps-multipitch'); if(old) old.remove();
+      var grid=world.querySelector('#gridLayer');
+      [].slice.call(world.querySelectorAll('[data-ps-hidden]')).forEach(function(c){ c.style.display=''; c.removeAttribute('data-ps-hidden'); });
+      if(grid) grid.style.display='';
+      if(n<=1) return;
+      [].slice.call(world.children).forEach(function(c){ if(c.tagName.toLowerCase()==='g' && !c.id){ c.setAttribute('data-ps-hidden','1'); c.style.display='none'; } });
+      if(grid) grid.style.display='none';
+      function E(t,a){ var e=doc.createElementNS(NS,t); for(var k in a) e.setAttribute(k,a[k]); return e; }
+      var ST={stroke:'#ffffff','stroke-width':'2.4',fill:'none','stroke-opacity':'0.92'};
+      function pitch(x0,y0,w,h){
+        var g=E('g',{});
+        function add(t,a){ for(var k in ST) if(!(k in a)) a[k]=ST[k]; g.appendChild(E(t,a)); }
+        add('rect',{x:x0,y:y0,width:w,height:h,rx:6});
+        add('line',{x1:x0,y1:y0+h/2,x2:x0+w,y2:y0+h/2});
+        add('circle',{cx:x0+w/2,cy:y0+h/2,r:Math.min(w,h)*0.13});
+        add('circle',{cx:x0+w/2,cy:y0+h/2,r:3,fill:'#ffffff','stroke-width':'0'});
+        var pbW=w*0.58,pbH=h*0.15;
+        add('rect',{x:x0+(w-pbW)/2,y:y0,width:pbW,height:pbH});
+        add('rect',{x:x0+(w-pbW)/2,y:y0+h-pbH,width:pbW,height:pbH});
+        var gbW=w*0.3,gbH=h*0.06;
+        add('rect',{x:x0+(w-gbW)/2,y:y0,width:gbW,height:gbH});
+        add('rect',{x:x0+(w-gbW)/2,y:y0+h-gbH,width:gbW,height:gbH});
+        var goW=w*0.16;
+        add('rect',{x:x0+(w-goW)/2,y:y0-7,width:goW,height:7});
+        add('rect',{x:x0+(w-goW)/2,y:y0+h,width:goW,height:7});
+        return g;
+      }
+      var grp=E('g',{id:'ps-multipitch'});
+      var m=26, gap=24, cw=(W-2*m-gap*(n-1))/n;
+      for(var i=0;i<n;i++){ grp.appendChild(pitch(m+i*(cw+gap), m, cw, H-2*m)); }
+      var tl=world.querySelector('#tokenLayer'); if(tl) world.insertBefore(grp,tl); else world.appendChild(grp);
+    }catch(e){}
+  }
+  function setPitches(doc,n){ psPitchN=n; applyPitches(doc,n); }
   function attachGrassKeeper(doc){
     if(doc.__psGrassKeeper) return; var board=doc.getElementById('board'); if(!board) return; doc.__psGrassKeeper=1;
     var win=doc.defaultView; var busy=false, t=null;
     var obs=new win.MutationObserver(function(){
       if(busy) return; if(t) clearTimeout(t);
-      t=setTimeout(function(){ busy=true; try{ obs.disconnect(); recolorGrass(doc); }catch(e){} try{ obs.observe(board,{childList:true,subtree:true,attributes:true,attributeFilter:['fill']}); }catch(e){} busy=false; }, 60);
+      t=setTimeout(function(){ busy=true; try{ obs.disconnect(); recolorGrass(doc); if(psPitchN>1) applyPitches(doc,psPitchN); }catch(e){} try{ obs.observe(board,{childList:true,subtree:true,attributes:true,attributeFilter:['fill']}); }catch(e){} busy=false; }, 60);
     });
     try{ obs.observe(board,{childList:true,subtree:true,attributes:true,attributeFilter:['fill']}); }catch(e){}
   }
@@ -1321,6 +1361,9 @@
       team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); enforce(false); });
       tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); enforce(true); });
       var spm=setg.querySelector('.popmenu');
+      spm.appendChild(sec('운동장'));
+      (function(){ var pr=doc.createElement('div'); pr.className='menurow'; pr.style.cssText='display:flex;gap:8px;align-items:center;'; [1,2,3].forEach(function(k){ var b=doc.createElement('button'); b.type='button'; b.className='btn'; b.textContent=k+'개'; b.style.cssText='padding:4px 12px;'; b.addEventListener('click',function(ev){ ev.stopPropagation(); try{ setPitches(doc,k); }catch(e){} }); pr.appendChild(b); }); spm.appendChild(pr); })();
+      spm.appendChild(hrr());
       spm.appendChild(sec('지우기'));
       [13,14].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
       spm.appendChild(hrr());
