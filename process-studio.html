@@ -1311,6 +1311,20 @@
     }catch(e){}
   }
   function setPitches(doc,n){ psPitchN=n; applyPitches(doc,n); }
+  function updateTabs(doc){
+    try{
+      var win=doc.defaultView;
+      function vis(id){ var e=doc.getElementById(id); return !!(e && win.getComputedStyle(e).display!=='none'); }
+      var benchOpen=vis('bench'), drawOpen=vis('drawPanel');
+      var bc=doc.getElementById('benchCat'); var eqOn=!!(bc && (''+bc.className).indexOf('equipcat')>=0);
+      var s=doc.getElementById('ps-group-set'); var setPm=!!(s && s.querySelector('.popmenu') && win.getComputedStyle(s.querySelector('.popmenu')).display!=='none');
+      function set(id,a){ var e=doc.getElementById(id); if(e) e.setAttribute('data-ps-active', a?'1':'0'); }
+      set('ps-group-team', benchOpen && !eqOn);
+      set('ps-group-eq', benchOpen && eqOn);
+      set('ps-group-tool', drawOpen);
+      set('ps-group-set', setPm);
+    }catch(e){}
+  }
   function attachGrassKeeper(doc){
     if(doc.__psGrassKeeper) return; var board=doc.getElementById('board'); if(!board) return; doc.__psGrassKeeper=1;
     var win=doc.defaultView; var busy=false, t=null;
@@ -1393,12 +1407,14 @@
       acts.appendChild(team); acts.appendChild(tool); if(eqg) acts.appendChild(eqg); acts.appendChild(setg);
       doc.addEventListener('click',function(ev){for(var i=0;i<groups.length;i++){if(groups[i].contains(ev.target))return;}closeAll(null);},false);
       setTimeout(function(){ try{ if(team) team.click(); }catch(e){} }, 380);
+      try{ var wt=[doc.getElementById('bench'), doc.getElementById('benchCat'), doc.getElementById('drawPanel'), setg.querySelector('.popmenu')]; wt.forEach(function(el){ if(el){ try{ new win.MutationObserver(function(){ setTimeout(function(){ updateTabs(doc); },20); }).observe(el,{attributes:true,attributeFilter:['style','class']}); }catch(e){} } }); }catch(e){}
+      setTimeout(function(){ updateTabs(doc); }, 500);
     }catch(e){}
   }
   function run(){
     if(applied) return true;
     var doc=boardDoc(); if(!doc) return false;
-    try{ if(!doc.getElementById('ps-tb-bottom')){ var stb=doc.createElement('style'); stb.id='ps-tb-bottom'; stb.textContent='#boardView{justify-content:flex-start;}#boardStage{margin-bottom:158px !important;}#boardToolbar{order:90;border-top:1px solid var(--line,#e2e4e8);border-bottom:none;margin-top:6px;}#boardToolbar .popmenu{transform:translateY(calc(-100% - 47px)) !important;}#boardToolbar .swatches{transform:translateY(calc(-100% - 50px)) !important;}#bench{flex-wrap:wrap !important;height:auto !important;max-height:none !important;row-gap:6px !important;align-items:center !important;}#ps-team-ctl{order:-1;}#drawPanel,#bench{transform:translateY(calc(-100% - 47px)) !important;}#ps-team-ctl{font-size:11px !important;}#ps-team-ctl>*{flex:0 0 auto !important;}#ps-team-ctl .menurow{display:inline-flex !important;width:auto !important;align-items:center !important;gap:4px !important;}#ps-team-ctl .menurow select,#ps-team-ctl .menurow input,#ps-team-ctl .menurow>div{max-width:120px !important;min-width:0 !important;width:auto !important;flex:0 0 auto !important;}#ps-team-ctl .menusec{font-size:10px !important;margin:0 2px 0 0 !important;}#ps-team-ctl button,#ps-team-ctl select,#ps-team-ctl .menurow>*{font-size:11px !important;padding:2px 8px !important;min-height:0 !important;height:26px !important;line-height:1 !important;}#ps-team-ctl svg{width:13px !important;height:13px !important;}#ps-team-ctl [data-ps-small]{font-size:10px !important;}#ps-team-ctl [data-ps-small] button,#ps-team-ctl [data-ps-small] select,#ps-team-ctl [data-ps-small]>*{font-size:10px !important;padding:1px 6px !important;height:22px !important;}#ps-team-ctl [data-ps-small].menusec{opacity:.7;}'; (doc.head||doc.documentElement).appendChild(stb); } }catch(e){}
+    try{ if(!doc.getElementById('ps-tb-bottom')){ var stb=doc.createElement('style'); stb.id='ps-tb-bottom'; stb.textContent='#boardView{justify-content:flex-start;}#boardStage{margin-bottom:158px !important;}#boardToolbar{order:90;border-top:1px solid var(--line,#e2e4e8);border-bottom:none;margin-top:6px;}#boardToolbar .popmenu{transform:translateY(calc(-100% - 47px)) !important;}#boardToolbar .swatches{transform:translateY(calc(-100% - 50px)) !important;}#bench{flex-wrap:wrap !important;height:auto !important;max-height:none !important;row-gap:6px !important;align-items:center !important;}#ps-team-ctl{order:-1;}#drawPanel,#bench{transform:translateY(calc(-100% - 47px)) !important;}#ps-team-ctl{font-size:11px !important;}#ps-team-ctl>*{flex:0 0 auto !important;}#ps-team-ctl .menurow{display:inline-flex !important;width:auto !important;align-items:center !important;gap:4px !important;}#ps-team-ctl .menurow select,#ps-team-ctl .menurow input,#ps-team-ctl .menurow>div{max-width:120px !important;min-width:0 !important;width:auto !important;flex:0 0 auto !important;}#ps-team-ctl .menusec{font-size:10px !important;margin:0 2px 0 0 !important;}#ps-team-ctl button,#ps-team-ctl select,#ps-team-ctl .menurow>*{font-size:11px !important;padding:2px 8px !important;min-height:0 !important;height:26px !important;line-height:1 !important;}#ps-team-ctl svg{width:13px !important;height:13px !important;}#ps-team-ctl [data-ps-small]{font-size:10px !important;}#ps-team-ctl [data-ps-small] button,#ps-team-ctl [data-ps-small] select,#ps-team-ctl [data-ps-small]>*{font-size:10px !important;padding:1px 6px !important;height:22px !important;}#ps-team-ctl [data-ps-small].menusec{opacity:.7;}#bench,#drawPanel{border-radius:14px 14px 0 0 !important;box-shadow:0 -4px 18px rgba(16,24,40,0.12) !important;}#benchItems .chip{cursor:grab !important;transition:transform .12s ease,box-shadow .12s ease !important;}#benchItems .chip:hover{transform:translateY(-2px) !important;box-shadow:0 5px 12px rgba(0,0,0,0.22) !important;}#boardToolbar #ps-group-team{border-bottom:2px solid #16306e !important;}#boardToolbar #ps-group-tool{border-bottom:2px solid #6b46c1 !important;}#boardToolbar #ps-group-eq{border-bottom:2px solid #dd6b20 !important;}#boardToolbar #ps-group-set .btn{border-bottom:2px solid #8b949c !important;}#ps-group-team[data-ps-active="1"]{background:#16306e !important;color:#fff !important;border-color:#16306e !important;}#ps-group-tool[data-ps-active="1"]{background:#6b46c1 !important;color:#fff !important;border-color:#6b46c1 !important;}#ps-group-eq[data-ps-active="1"]{background:#dd6b20 !important;color:#fff !important;border-color:#dd6b20 !important;}#ps-group-set[data-ps-active="1"] .btn{background:#5a626b !important;color:#fff !important;}'; (doc.head||doc.documentElement).appendChild(stb); } }catch(e){}
     try{ attachOneOpen(doc); }catch(e){}
     try{ attachGrassKeeper(doc); }catch(e){}
     var view=find(doc,function(e){ var t=T(e); if(t.indexOf('보기')<0||t.indexOf('사용법')>=0||t.indexOf('더보기')>=0||t.length>7) return false; var w=e.getBoundingClientRect().width; return w>20&&w<160; });
