@@ -1321,16 +1321,14 @@
       team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); enforce(false); });
       tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); enforce(true); });
       var spm=setg.querySelector('.popmenu');
-      spm.appendChild(sec('팀 구성'));
-      [0,1,2].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
-      [4,5,6].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
-      spm.appendChild(hrr());
-      spm.appendChild(sec('도구')); if(animBtn)spm.appendChild(rw(animBtn)); if(pngBtn)spm.appendChild(rw(pngBtn));
-      [12,13,14].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
+      spm.appendChild(sec('지우기'));
+      [13,14].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
       spm.appendChild(hrr());
       spm.appendChild(sec('모드')); if(viewTabs)spm.appendChild(rw(viewTabs)); spm.appendChild(hrr());
-      viewRows.forEach(function(r){spm.appendChild(r);}); spm.appendChild(hrr());
+      viewRows.forEach(function(r,ri){ if(ri!==4) spm.appendChild(r); }); spm.appendChild(hrr());
       [8,9,10].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
+      try{ var dpb=doc.getElementById('drawPanel'); if(dpb){ if(animBtn){ animBtn.style.marginLeft='10px'; dpb.appendChild(animBtn);} if(pngBtn) dpb.appendChild(pngBtn); } }catch(e){}
+      try{ var benchEl=doc.getElementById('bench'); if(benchEl){ var tctl=doc.createElement('div'); tctl.id='ps-team-ctl'; tctl.style.cssText='display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;width:100%;padding:2px 0 6px;'; [0,1,2,4,5,6].forEach(function(i){ if(moreRows[i]) tctl.appendChild(moreRows[i]); }); if(viewRows[4]) tctl.appendChild(viewRows[4]); benchEl.insertBefore(tctl, benchEl.firstChild); } }catch(e){}
       viewWrap.remove(); moreWrap.remove();
       acts.appendChild(team); acts.appendChild(tool); acts.appendChild(setg);
       doc.addEventListener('click',function(ev){for(var i=0;i<groups.length;i++){if(groups[i].contains(ev.target))return;}closeAll(null);},false);
