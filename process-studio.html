@@ -1242,13 +1242,21 @@
     applied=true;
     try{ view.click(); }catch(e){ return true; }
     setTimeout(function(){
-      try{
-        var g=find(doc,function(e){return T(e)==='잔디'&&e.children.length===0;}); if(g)g.click();
-        var c=find(doc,function(e){return T(e).indexOf('원형')>=0&&e.children.length===0;}); if(c)c.click();
-        var n=find(doc,function(e){return T(e)==='번호'&&e.children.length===0;}); if(n)n.click();
-        var p=find(doc,function(e){return e.tagName==='BUTTON'&&T(e)==='＋'&&e.getBoundingClientRect().width<60;}); if(p){ p.click(); p.click(); }
-      }catch(e){}
-      setTimeout(function(){ try{ view.click(); }catch(e){} }, 180);
+      var pPlus=function(e){return e.tagName==='BUTTON'&&T(e)==='＋'&&e.getBoundingClientRect().width<60;};
+      var steps=[
+        function(){var g=find(doc,function(e){return T(e)==='잔디'&&e.children.length===0;}); if(g)g.click();},
+        function(){var c=find(doc,function(e){return T(e).indexOf('원형')>=0&&e.children.length===0;}); if(c)c.click();},
+        function(){var n=find(doc,function(e){return T(e)==='번호'&&e.children.length===0;}); if(n)n.click();},
+        function(){var p=find(doc,pPlus); if(p)p.click();},
+        function(){var p=find(doc,pPlus); if(p)p.click();}
+      ];
+      var si=0;
+      (function nextStep(){
+        if(si>=steps.length){ setTimeout(function(){ try{ view.click(); }catch(e){} }, 150); return; }
+        try{ steps[si](); }catch(e){}
+        si++;
+        setTimeout(nextStep, 140);
+      })();
     }, 220);
     return true;
   }
