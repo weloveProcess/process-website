@@ -1226,6 +1226,8 @@
    '보기' 메뉴 동작을 자동 실행해 적용. 로드 순간 커버를 씌워 깜빡임 없이 "처음부터 잔디"로 보이게. */
 (function(){
   var applied=false, tries=0, cover=null, revealed=false;
+    /* #1 백업 배너 -> 헤더 칩 */
+    try{var __bst=document.createElement('style');__bst.textContent='#bkBanner{display:none !important;}';document.head.appendChild(__bst);var __bar=document.querySelector('header.appbar');if(__bar&&!document.getElementById('ps-bkchip')){var __last=+(localStorage.getItem('cs_lastbk')||0);var __need=!__last||(Date.now()-__last)>6048e5;var __chip=document.createElement('button');__chip.id='ps-bkchip';__chip.type='button';__chip.title='백업';__chip.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 9px;margin-left:8px;border-radius:13px;border:1px solid #e2e4e8;background:#f4f6f8;color:#5a626b;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;';__chip.innerHTML='<span style="width:7px;height:7px;border-radius:50%;display:inline-block;background:'+(__need?'#e6a417':'#34b36a')+'"></span><span>'+(__need?'백업 권장':'로컬 저장됨')+'</span>';__chip.addEventListener('click',function(){var d=document.getElementById('bkDown')||document.getElementById('bkNow')||document.getElementById('gearBtn');if(d)d.click();});var __bk=document.getElementById('bkup');if(__bk&&__bk.parentNode){__bk.parentNode.insertBefore(__chip,__bk);}else{__bar.appendChild(__chip);}}}catch(e){}
   try{
     cover=document.createElement('div');
     cover.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#0b0c0e;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .35s ease;';
