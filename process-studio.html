@@ -679,7 +679,7 @@
             var dv=document.createElement('div');
             dv.textContent=(x.time?x.time+' · ':'')+(x.aims||'훈련')+' · '+(x.mins||0)+'분';
             var bl=document.createElement('div');bl.style.cssText='font-size:11.5px;color:#7d828c;margin:1px 0 6px;';
-            bl.textContent=(x.blocks||[]).map(function(b2){return (b2.phase||'')+(b2.theme?'·'+b2.theme:'')+" "+(b2.dur||0)+"'";}).join('  /  ');
+            bl.textContent=(x.blocks||[]).map(function(b2){return (b2.theme||b2.phase||'')+(b2.theme&&b2.phase?' ('+b2.phase+')':'')+" "+(b2.dur||0)+"'";}).join('  /  ');
             td2.appendChild(dv);td2.appendChild(bl);
           });
           trw.appendChild(td1);trw.appendChild(td2);tb.appendChild(trw);
