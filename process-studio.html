@@ -1218,29 +1218,5 @@
   apply(saved,true);
 })();
 </script>
-<script>
-/* PROCESS STUDIO 보강: 첫 화면 피치 기본값 = 잔디(grass) — 친근한 첫인상.
-   핵심 코드 무수정. 사용자가 '보기' 메뉴에서 바꾸면 그 선택을 존중(한 번만 적용). */
-(function(){
-  function setGrass(doc){
-    try{
-      var el = doc && doc.documentElement;
-      if(el && el.dataset && el.dataset.pitch==='white' && !doc.__psGrassInit){
-        doc.__psGrassInit = 1;
-        el.dataset.pitch = 'grass';
-      }
-    }catch(e){}
-  }
-  function sweep(){
-    setGrass(document);
-    var ifr = document.getElementsByTagName('iframe');
-    for(var i=0;i<ifr.length;i++){ try{ setGrass(ifr[i].contentDocument); }catch(e){} }
-  }
-  try{
-    var n=0, t=setInterval(function(){ sweep(); if(++n>24) clearInterval(t); }, 200);
-    window.addEventListener('load', sweep);
-  }catch(e){}
-})();
-</script>
 </body>
 </html>
