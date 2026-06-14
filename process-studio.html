@@ -1219,10 +1219,21 @@
 })();
 </script>
 <script>
-/* PROCESS STUDIO 보강: 첫 화면 기본 외형 = 잔디 피치 · 원형 선수알 · 번호 표시.
-   '보기' 메뉴의 실제 동작을 자동 실행해 적용(필드 재그리기 포함). 로드당 1회. */
+/* PROCESS STUDIO 보강: 첫 화면 기본 외형 = 잔디 피치 · 원형 선수알 · 번호 표시 · 큰 선수알.
+   '보기' 메뉴 동작을 자동 실행해 적용. 로드 순간 커버를 씌워 깜빡임 없이 "처음부터 잔디"로 보이게. */
 (function(){
-  var applied=false, tries=0;
+  var applied=false, tries=0, cover=null, revealed=false;
+  try{
+    cover=document.createElement('div');
+    cover.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#0b0c0e;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity .35s ease;';
+    cover.innerHTML='<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;font-size:40px;color:#ffffff;letter-spacing:.01em;line-height:1;"><span style="font-weight:800;">PRO</span><span style="font-weight:300;">CESS</span></div>';
+    (document.body||document.documentElement).appendChild(cover);
+  }catch(e){}
+  function reveal(){
+    if(revealed) return; revealed=true;
+    if(cover){ try{ cover.style.opacity='0'; setTimeout(function(){ if(cover&&cover.parentNode) cover.parentNode.removeChild(cover); },380); }catch(e){} }
+  }
+  setTimeout(reveal, 1900);
   function boardDoc(){
     var ifr=document.getElementsByTagName('iframe');
     for(var i=0;i<ifr.length;i++){ try{ var d=ifr[i].contentDocument; if(d&&d.getElementById('board')) return d; }catch(e){} }
@@ -1234,13 +1245,25 @@
     for(var i=0;i<els.length;i++){ try{ if(test(els[i]) && els[i].getBoundingClientRect().width>0) return els[i]; }catch(e){} }
     return null;
   }
+  function recolorGrass(doc){
+    var board=doc.getElementById('board'); if(!board) return;
+    var GREENS={'#1b8044':1,'#239150':1,'#1e8a4b':1};
+    var DARK='#1e8a4b', LIGHT='#239150';
+    var rects=[].slice.call(board.querySelectorAll('rect'));
+    var grass=rects.filter(function(r){ return GREENS[(r.getAttribute('fill')||'').toLowerCase()]; });
+    grass.filter(function(r){ return parseFloat(r.getAttribute('width')||0)>200; }).forEach(function(r){ r.setAttribute('fill',DARK); });
+    var stripes=grass.filter(function(r){ return parseFloat(r.getAttribute('width')||0)<=200; });
+    stripes.sort(function(a,b){ return parseFloat(a.getAttribute('x')||0)-parseFloat(b.getAttribute('x')||0); });
+    stripes.forEach(function(r,i){ r.setAttribute('fill', Math.floor(i/2)%2===0?DARK:LIGHT); });
+  }
   function run(){
     if(applied) return true;
     var doc=boardDoc(); if(!doc) return false;
+    try{ if(!doc.getElementById('ps-tb-bottom')){ var stb=doc.createElement('style'); stb.id='ps-tb-bottom'; stb.textContent='#boardView{justify-content:flex-start;}#boardToolbar{order:90;border-top:1px solid var(--line,#e2e4e8);border-bottom:none;margin-top:6px;}#boardToolbar .popmenu{transform:translateY(calc(-100% - 47px)) !important;}#boardToolbar .swatches{transform:translateY(calc(-100% - 50px)) !important;}#drawPanel,#bench{transform:translateY(calc(-100% - 47px)) !important;}'; (doc.head||doc.documentElement).appendChild(stb); } }catch(e){}
     var view=find(doc,function(e){ var t=T(e); if(t.indexOf('보기')<0||t.indexOf('사용법')>=0||t.indexOf('더보기')>=0||t.length>7) return false; var w=e.getBoundingClientRect().width; return w>20&&w<160; });
     if(!view) return false;
     applied=true;
-    try{ view.click(); }catch(e){ return true; }
+    try{ view.click(); }catch(e){ reveal(); return true; }
     setTimeout(function(){
       var pPlus=function(e){return e.tagName==='BUTTON'&&T(e)==='＋'&&e.getBoundingClientRect().width<60;};
       var steps=[
@@ -1249,12 +1272,11 @@
         function(){var n=find(doc,function(e){return T(e)==='번호'&&e.children.length===0;}); if(n)n.click();},
         function(){var p=find(doc,pPlus); if(p)p.click();},
         function(){var p=find(doc,pPlus); if(p)p.click();},
-        function(){var p=find(doc,pPlus); if(p)p.click();},
         function(){var p=find(doc,pPlus); if(p)p.click();}
       ];
       var si=0;
       (function nextStep(){
-        if(si>=steps.length){ setTimeout(function(){ try{ view.click(); }catch(e){} }, 150); return; }
+        if(si>=steps.length){ setTimeout(function(){ try{ view.click(); }catch(e){} }, 150); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} reveal(); }, 360); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} }, 820); return; }
         try{ steps[si](); }catch(e){}
         si++;
         setTimeout(nextStep, 140);
@@ -1262,7 +1284,7 @@
     }, 220);
     return true;
   }
-  var iv=setInterval(function(){ if(run()||++tries>50) clearInterval(iv); }, 250);
+  var iv=setInterval(function(){ if(run()||++tries>50){ clearInterval(iv); if(tries>50) reveal(); } }, 250);
 })();
 </script>
 </body>
