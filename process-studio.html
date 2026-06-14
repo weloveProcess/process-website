@@ -1310,12 +1310,14 @@
       var benchCat=doc.getElementById('benchCat'); if(benchCat) benchCat.style.display='none';
       function itemsToDraw(){ try{ var bi=doc.getElementById('benchItems'); var dp2=doc.getElementById('drawPanel'); if(bi&&dp2&&bi.parentNode!==dp2) dp2.appendChild(bi); }catch(e){} }
       function itemsToBench(){ try{ var bi=doc.getElementById('benchItems'); var bn=doc.getElementById('bench'); if(bi&&bn&&bi.parentNode!==bn) bn.appendChild(bi); }catch(e){} }
+      var modeToken=0;
+      function enforce(wantEquip){ var my=++modeToken, n=0; var iv=win.setInterval(function(){ if(my!==modeToken){ win.clearInterval(iv); return; } try{ if(eqOn()!==wantEquip && origEq) origEq.click(); if(wantEquip) itemsToDraw(); else itemsToBench(); liftPanels(); }catch(e){} if(++n>=8) win.clearInterval(iv); }, 80); }
       var team=doc.createElement('button'); team.className='btn ghost'; team.id='ps-group-team'; team.type='button'; team.innerHTML='👥 팀';
       var tool=doc.createElement('button'); tool.className='btn ghost'; tool.id='ps-group-tool'; tool.type='button'; tool.innerHTML='✏️ 도구';
       var setg=mk('ps-group-set','설정');
       groups=[setg];
-      team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); var fix=function(){ itemsToBench(); if(eqOn()&&origEq) origEq.click(); itemsToBench(); liftPanels(); }; setTimeout(fix,50); setTimeout(fix,180); setTimeout(liftPanels,300); });
-      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); var fix=function(){ if(!eqOn()&&origEq) origEq.click(); itemsToDraw(); liftPanels(); }; setTimeout(fix,50); setTimeout(fix,180); setTimeout(liftPanels,300); });
+      team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); enforce(false); });
+      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); enforce(true); });
       var spm=setg.querySelector('.popmenu');
       spm.appendChild(sec('팀 구성'));
       [0,1,2].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
