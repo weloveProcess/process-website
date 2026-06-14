@@ -1314,8 +1314,8 @@
       var tool=doc.createElement('button'); tool.className='btn ghost'; tool.id='ps-group-tool'; tool.type='button'; tool.innerHTML='✏️ 도구';
       var setg=mk('ps-group-set','설정');
       groups=[setg];
-      team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); itemsToBench(); if(eqOn()&&origEq) origEq.click(); if(benchTog) benchTog.click(); setTimeout(itemsToBench,40); liftSoon(); });
-      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); if(!eqOn()&&origEq) origEq.click(); setTimeout(itemsToDraw,40); setTimeout(itemsToDraw,150); liftSoon(); });
+      team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); var fix=function(){ itemsToBench(); if(eqOn()&&origEq) origEq.click(); itemsToBench(); liftPanels(); }; setTimeout(fix,50); setTimeout(fix,180); setTimeout(liftPanels,300); });
+      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); var fix=function(){ if(!eqOn()&&origEq) origEq.click(); itemsToDraw(); liftPanels(); }; setTimeout(fix,50); setTimeout(fix,180); setTimeout(liftPanels,300); });
       var spm=setg.querySelector('.popmenu');
       spm.appendChild(sec('팀 구성'));
       [0,1,2].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
