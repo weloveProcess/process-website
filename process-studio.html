@@ -1272,6 +1272,40 @@
     }
     tb.addEventListener('click', function(ev){ var b=ev.target.closest&&ev.target.closest('button'); if(!b) return; setTimeout(function(){ try{ closeMenus(b); }catch(e){} },0); }, false);
   }
+  function buildGroups(doc){
+    try{
+      var win=doc.defaultView; var tb=doc.getElementById('boardToolbar'); if(!tb) return;
+      if(doc.getElementById('ps-group-team')) return;
+      var acts=tb.querySelector('.tbar-actions'); if(!acts) return;
+      var wraps=tb.querySelectorAll('.menuwrap'); var viewWrap=wraps[0], moreWrap=wraps[1];
+      if(!viewWrap||!moreWrap) return;
+      var viewRows=[].slice.call(viewWrap.querySelector('.popmenu').children);
+      var moreRows=[].slice.call(moreWrap.querySelector('.popmenu').children);
+      var benchTog=doc.getElementById('benchTog'),drawTog=doc.getElementById('drawTog'),animBtn=doc.getElementById('animToggle'),pngBtn=doc.getElementById('pngBtn'),viewTabs=doc.getElementById('viewTabsTop');
+      function sec(t){var d=doc.createElement('div');d.className='menusec';d.textContent=t;return d;}
+      function hrr(){var h=doc.createElement('hr');h.className='menudiv';return h;}
+      function rw(n){var r=doc.createElement('div');r.className='menurow';r.style.cssText='display:flex;gap:6px;align-items:center;';r.appendChild(n);return r;}
+      var groups=[];
+      function closeAll(ex){groups.forEach(function(g){if(g!==ex){g.querySelector('.popmenu').style.display='none';}});}
+      function clampAll(){groups.forEach(function(g){var pm=g.querySelector('.popmenu');if(pm.style.display==='none')return;var b=g.querySelector('.btn');var rect=b.getBoundingClientRect();var vw=win.innerWidth;var pw=pm.offsetWidth||296;var left=Math.min(rect.left,vw-pw-10);if(left<8)left=8;pm.style.left=left+'px';pm.style.top=rect.top+'px';pm.style.right='auto';});}
+      function toggle(w){var pm=w.querySelector('.popmenu');var op=pm.style.display!=='none';closeAll(w);try{var bn=doc.getElementById('bench');if(bn&&win.getComputedStyle(bn).display!=='none'&&benchTog)benchTog.click();}catch(e){}try{var dp=doc.getElementById('drawPanel');if(dp&&win.getComputedStyle(dp).display!=='none'&&drawTog)drawTog.click();}catch(e){}if(op){pm.style.display='none';return;}pm.style.position='fixed';pm.style.display='flex';clampAll();}
+      function mk(id,label){var w=doc.createElement('div');w.className='menuwrap';w.id=id;w.style.position='relative';var b=doc.createElement('button');b.className='btn ghost';b.type='button';b.innerHTML=label+' <span style="opacity:.6">▾</span>';var pm=doc.createElement('div');pm.className='popmenu';pm.style.display='none';pm.style.maxHeight='calc(100vh - 110px)';pm.style.overflowY='auto';pm.style.overflowX='hidden';w.appendChild(b);w.appendChild(pm);b.addEventListener('click',function(ev){ev.stopPropagation();toggle(w);setTimeout(clampAll,0);});return w;}
+      var team=mk('ps-group-team','팀'),tool=mk('ps-group-tool','도구'),setg=mk('ps-group-set','설정');
+      groups=[team,tool,setg];
+      var tpm=team.querySelector('.popmenu'),opm=tool.querySelector('.popmenu'),spm=setg.querySelector('.popmenu');
+      tpm.appendChild(sec('선수')); if(benchTog)tpm.appendChild(rw(benchTog)); tpm.appendChild(hrr());
+      [0,1,2].forEach(function(i){if(moreRows[i])tpm.appendChild(moreRows[i]);}); tpm.appendChild(hrr());
+      [4,5,6].forEach(function(i){if(moreRows[i])tpm.appendChild(moreRows[i]);});
+      opm.appendChild(sec('그리기·도구')); if(drawTog)opm.appendChild(rw(drawTog)); if(animBtn)opm.appendChild(rw(animBtn)); if(pngBtn)opm.appendChild(rw(pngBtn)); opm.appendChild(hrr());
+      [12,13,14].forEach(function(i){if(moreRows[i])opm.appendChild(moreRows[i]);});
+      spm.appendChild(sec('모드')); if(viewTabs)spm.appendChild(rw(viewTabs)); spm.appendChild(hrr());
+      viewRows.forEach(function(r){spm.appendChild(r);}); spm.appendChild(hrr());
+      [8,9,10].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
+      viewWrap.remove(); moreWrap.remove();
+      acts.appendChild(team); acts.appendChild(tool); acts.appendChild(setg);
+      doc.addEventListener('click',function(ev){for(var i=0;i<groups.length;i++){if(groups[i].contains(ev.target))return;}closeAll(null);},false);
+    }catch(e){}
+  }
   function run(){
     if(applied) return true;
     var doc=boardDoc(); if(!doc) return false;
@@ -1293,7 +1327,7 @@
       ];
       var si=0;
       (function nextStep(){
-        if(si>=steps.length){ setTimeout(function(){ try{ view.click(); }catch(e){} }, 150); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} reveal(); }, 360); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} }, 820); return; }
+        if(si>=steps.length){ setTimeout(function(){ try{ view.click(); }catch(e){} }, 150); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} reveal(); }, 360); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} }, 820); setTimeout(function(){ try{ buildGroups(doc); }catch(e){} }, 700); return; }
         try{ steps[si](); }catch(e){}
         si++;
         setTimeout(nextStep, 140);
