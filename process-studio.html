@@ -1368,13 +1368,13 @@
       function itemsToDraw(){ try{ var bi=doc.getElementById('benchItems'); var dp2=doc.getElementById('drawPanel'); if(bi&&dp2&&bi.parentNode!==dp2) dp2.appendChild(bi); }catch(e){} }
       function itemsToBench(){ try{ var bi=doc.getElementById('benchItems'); var bn=doc.getElementById('bench'); if(bi&&bn&&bi.parentNode!==bn) bn.appendChild(bi); }catch(e){} }
       var modeToken=0;
-      function enforce(wantEquip){ var my=++modeToken, n=0; var iv=win.setInterval(function(){ if(my!==modeToken){ win.clearInterval(iv); return; } try{ if(wantEquip){ if(!eqOn()){ var e=getEq(); if(e) e.click(); } itemsToDraw(); } else { if(eqOn()){ var c=getColor(); if(c) c.click(); } itemsToBench(); } var bc=doc.getElementById('benchCat'); if(bc) bc.style.display='none'; liftPanels(); }catch(e2){} if(++n>=10) win.clearInterval(iv); }, 80); }
+      function enforce(wantEquip){ var my=++modeToken, n=0; var iv=win.setInterval(function(){ if(my!==modeToken){ win.clearInterval(iv); return; } try{ if(wantEquip){ if(!eqOn()){ var e=getEq(); if(e) e.click(); } } else { if(eqOn()){ var c=getColor(); if(c) c.click(); } } var bc=doc.getElementById('benchCat'); if(bc) bc.style.display='none'; liftPanels(); }catch(e2){} if(++n>=10) win.clearInterval(iv); }, 80); }
       var team=doc.createElement('button'); team.className='btn ghost'; team.id='ps-group-team'; team.type='button'; team.innerHTML='👥 팀';
       var tool=doc.createElement('button'); tool.className='btn ghost'; tool.id='ps-group-tool'; tool.type='button'; tool.innerHTML='✏️ 도구';
       var setg=mk('ps-group-set','설정');
       groups=[setg];
       team.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(benchTog) benchTog.click(); enforce(false); });
-      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); enforce(true); });
+      tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); liftSoon(); });
       var spm=setg.querySelector('.popmenu');
       spm.appendChild(sec('운동장'));
       (function(){ var pr=doc.createElement('div'); pr.className='menurow'; pr.style.cssText='display:flex;gap:8px;align-items:center;'; [1,2,3].forEach(function(k){ var b=doc.createElement('button'); b.type='button'; b.className='btn'; b.textContent=k+'개'; b.style.cssText='padding:4px 12px;'; b.addEventListener('click',function(ev){ ev.stopPropagation(); try{ setPitches(doc,k); }catch(e){} }); pr.appendChild(b); }); spm.appendChild(pr); })();
@@ -1385,7 +1385,7 @@
       spm.appendChild(sec('모드')); if(viewTabs)spm.appendChild(rw(viewTabs)); spm.appendChild(hrr());
       viewRows.forEach(function(r,ri){ if(ri!==4) spm.appendChild(r); }); spm.appendChild(hrr());
       [8,9,10].forEach(function(i){if(moreRows[i])spm.appendChild(moreRows[i]);});
-      try{ var dpb=doc.getElementById('drawPanel'); if(dpb){ if(animBtn){ animBtn.style.marginLeft='10px'; dpb.appendChild(animBtn);} if(pngBtn) dpb.appendChild(pngBtn); } }catch(e){}
+      try{ var dpb=doc.getElementById('drawPanel'); if(dpb){ if(animBtn){ animBtn.style.marginLeft='10px'; dpb.appendChild(animBtn);} if(pngBtn) dpb.appendChild(pngBtn); var eqb=doc.createElement('button'); eqb.className='btn ghost'; eqb.id='ps-eq-proxy'; eqb.type='button'; eqb.innerHTML='🔺 장비'; eqb.style.marginLeft='6px'; eqb.addEventListener('click',function(ev){ ev.stopPropagation(); if(!benchOpen()){ if(benchTog) benchTog.click(); } enforce(true); }); dpb.appendChild(eqb); } }catch(e){}
       try{ var benchEl=doc.getElementById('bench'); if(benchEl){ var tctl=doc.createElement('div'); tctl.id='ps-team-ctl'; tctl.style.cssText='display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;width:100%;padding:2px 0 6px;'; [0,1,2,4,5,6].forEach(function(i){ if(moreRows[i]) tctl.appendChild(moreRows[i]); }); if(viewRows[4]) tctl.appendChild(viewRows[4]); benchEl.insertBefore(tctl, benchEl.firstChild); } }catch(e){}
       viewWrap.remove(); moreWrap.remove();
       acts.appendChild(team); acts.appendChild(tool); acts.appendChild(setg);
