@@ -1256,10 +1256,27 @@
     stripes.sort(function(a,b){ return parseFloat(a.getAttribute('x')||0)-parseFloat(b.getAttribute('x')||0); });
     stripes.forEach(function(r,i){ r.setAttribute('fill', Math.floor(i/2)%2===0?DARK:LIGHT); });
   }
+  function attachOneOpen(doc){
+    if(doc.__psOneOpen) return;
+    var tb=doc.getElementById('boardToolbar'); if(!tb) return;
+    doc.__psOneOpen=1;
+    function open(e){ try{ return e && doc.defaultView.getComputedStyle(e).display!=='none'; }catch(_){ return false; } }
+    function byLabel(l){ var bs=tb.querySelectorAll('button'); for(var i=0;i<bs.length;i++){ var t=T(bs[i]); if(t.indexOf(l)>=0&&t.length<10) return bs[i]; } return null; }
+    function closeMenus(clicked){
+      var label=clicked?T(clicked):'';
+      var cw=(clicked&&clicked.closest)?clicked.closest('.menuwrap'):null;
+      var bench=doc.getElementById('bench'); if(open(bench)&&label.indexOf('선수')<0){ var b=byLabel('선수'); if(b) b.click(); }
+      var draw=doc.getElementById('drawPanel'); if(open(draw)&&label.indexOf('그리기')<0){ var d=byLabel('그리기'); if(d) d.click(); }
+      var wraps=tb.querySelectorAll('.menuwrap');
+      for(var i=0;i<wraps.length;i++){ var w=wraps[i], pm=w.querySelector('.popmenu'); if(open(pm)&&w!==cw){ var bt=w.querySelector('.btn'); if(bt) bt.click(); } }
+    }
+    tb.addEventListener('click', function(ev){ var b=ev.target.closest&&ev.target.closest('button'); if(!b) return; setTimeout(function(){ try{ closeMenus(b); }catch(e){} },0); }, false);
+  }
   function run(){
     if(applied) return true;
     var doc=boardDoc(); if(!doc) return false;
     try{ if(!doc.getElementById('ps-tb-bottom')){ var stb=doc.createElement('style'); stb.id='ps-tb-bottom'; stb.textContent='#boardView{justify-content:flex-start;}#boardToolbar{order:90;border-top:1px solid var(--line,#e2e4e8);border-bottom:none;margin-top:6px;}#boardToolbar .popmenu{transform:translateY(calc(-100% - 47px)) !important;}#boardToolbar .swatches{transform:translateY(calc(-100% - 50px)) !important;}#drawPanel,#bench{transform:translateY(calc(-100% - 47px)) !important;}'; (doc.head||doc.documentElement).appendChild(stb); } }catch(e){}
+    try{ attachOneOpen(doc); }catch(e){}
     var view=find(doc,function(e){ var t=T(e); if(t.indexOf('보기')<0||t.indexOf('사용법')>=0||t.indexOf('더보기')>=0||t.length>7) return false; var w=e.getBoundingClientRect().width; return w>20&&w<160; });
     if(!view) return false;
     applied=true;
