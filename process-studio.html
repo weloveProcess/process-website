@@ -1218,5 +1218,41 @@
   apply(saved,true);
 })();
 </script>
+<script>
+/* PROCESS STUDIO 보강: 첫 화면 기본 외형 = 잔디 피치 · 원형 선수알 · 번호 표시.
+   '보기' 메뉴의 실제 동작을 자동 실행해 적용(필드 재그리기 포함). 로드당 1회. */
+(function(){
+  var applied=false, tries=0;
+  function boardDoc(){
+    var ifr=document.getElementsByTagName('iframe');
+    for(var i=0;i<ifr.length;i++){ try{ var d=ifr[i].contentDocument; if(d&&d.getElementById('board')) return d; }catch(e){} }
+    return null;
+  }
+  function T(el){ return (el.textContent||'').trim(); }
+  function find(doc, test){
+    var els=doc.querySelectorAll('button,[role=button],a,div,span');
+    for(var i=0;i<els.length;i++){ try{ if(test(els[i]) && els[i].getBoundingClientRect().width>0) return els[i]; }catch(e){} }
+    return null;
+  }
+  function run(){
+    if(applied) return true;
+    var doc=boardDoc(); if(!doc) return false;
+    var view=find(doc,function(e){ var t=T(e); if(t.indexOf('보기')<0||t.indexOf('사용법')>=0||t.indexOf('더보기')>=0||t.length>7) return false; var w=e.getBoundingClientRect().width; return w>20&&w<160; });
+    if(!view) return false;
+    applied=true;
+    try{ view.click(); }catch(e){ return true; }
+    setTimeout(function(){
+      try{
+        var g=find(doc,function(e){return T(e)==='잔디'&&e.children.length===0;}); if(g)g.click();
+        var c=find(doc,function(e){return T(e).indexOf('원형')>=0&&e.children.length===0;}); if(c)c.click();
+        var n=find(doc,function(e){return T(e)==='번호'&&e.children.length===0;}); if(n)n.click();
+      }catch(e){}
+      setTimeout(function(){ try{ view.click(); }catch(e){} }, 180);
+    }, 220);
+    return true;
+  }
+  var iv=setInterval(function(){ if(run()||++tries>50) clearInterval(iv); }, 250);
+})();
+</script>
 </body>
 </html>
