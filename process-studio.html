@@ -1303,7 +1303,8 @@
       if(drawTog) drawTog.style.display='none';
       var origEq=null; try{ var bc=doc.getElementById('benchCat'); if(bc){ var pp=bc.querySelectorAll('button'); for(var qi=0;qi<pp.length;qi++){ if(T(pp[qi])==='장비'){ origEq=pp[qi]; break; } } } }catch(e){}
       function getEq(){ try{ var bc=doc.getElementById('benchCat'); if(bc){ var pp=bc.querySelectorAll('button'); for(var gi=0;gi<pp.length;gi++){ if(T(pp[gi])==='장비') return pp[gi]; } } }catch(e){} return origEq; }
-      function eqOn(){ var e=getEq(); return e && (''+e.className).indexOf('on')>=0; }
+      function getColor(){ try{ var bc=doc.getElementById('benchCat'); if(bc){ var pp=bc.querySelectorAll('button'); for(var ci=0;ci<pp.length;ci++){ var t=T(pp[ci]); if(t==='파랑'||t==='빨강'||t==='노랑'||t==='초록') return pp[ci]; } } }catch(e){} return null; }
+      function eqOn(){ var bc=doc.getElementById('benchCat'); return !!(bc && (''+bc.className).indexOf('equipcat')>=0); }
       function benchOpen(){ var b=doc.getElementById('bench'); return !!(b && win.getComputedStyle(b).display!=='none'); }
       function liftPanels(){ var tbE=doc.getElementById('boardToolbar'); var th=tbE?Math.round(tbE.getBoundingClientRect().height):47; ['drawPanel','bench'].forEach(function(id){ var p=doc.getElementById(id); if(p&&win.getComputedStyle(p).display!=='none'){ try{ p.style.setProperty('transform','translateY(calc(-100% - '+(th+8)+'px))','important'); }catch(e){} } }); }
       function liftSoon(){ setTimeout(liftPanels,90); setTimeout(liftPanels,240); }
@@ -1312,7 +1313,7 @@
       function itemsToDraw(){ try{ var bi=doc.getElementById('benchItems'); var dp2=doc.getElementById('drawPanel'); if(bi&&dp2&&bi.parentNode!==dp2) dp2.appendChild(bi); }catch(e){} }
       function itemsToBench(){ try{ var bi=doc.getElementById('benchItems'); var bn=doc.getElementById('bench'); if(bi&&bn&&bi.parentNode!==bn) bn.appendChild(bi); }catch(e){} }
       var modeToken=0;
-      function enforce(wantEquip){ var my=++modeToken, n=0; var iv=win.setInterval(function(){ if(my!==modeToken){ win.clearInterval(iv); return; } try{ var bc=doc.getElementById('benchCat'); if(bc) bc.style.display='none'; var e=getEq(); if(e && eqOn()!==wantEquip) e.click(); if(wantEquip) itemsToDraw(); else itemsToBench(); liftPanels(); }catch(e2){} if(++n>=10) win.clearInterval(iv); }, 80); }
+      function enforce(wantEquip){ var my=++modeToken, n=0; var iv=win.setInterval(function(){ if(my!==modeToken){ win.clearInterval(iv); return; } try{ if(wantEquip){ if(!eqOn()){ var e=getEq(); if(e) e.click(); } itemsToDraw(); } else { if(eqOn()){ var c=getColor(); if(c) c.click(); } itemsToBench(); } var bc=doc.getElementById('benchCat'); if(bc) bc.style.display='none'; liftPanels(); }catch(e2){} if(++n>=10) win.clearInterval(iv); }, 80); }
       var team=doc.createElement('button'); team.className='btn ghost'; team.id='ps-group-team'; team.type='button'; team.innerHTML='👥 팀';
       var tool=doc.createElement('button'); tool.className='btn ghost'; tool.id='ps-group-tool'; tool.type='button'; tool.innerHTML='✏️ 도구';
       var setg=mk('ps-group-set','설정');
