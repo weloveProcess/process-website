@@ -745,6 +745,7 @@ export default function StudioShell() {
           {APPS.map((a) => (
             <button
               key={a.id}
+              data-app={a.id}
               className={app === a.id ? 'on' : ''}
               onClick={() => setApp(a.id)}
             >
@@ -754,27 +755,6 @@ export default function StudioShell() {
         </div>
 
         <div className="cs-hint">{HINTS[app]}</div>
-
-        {/* 언어 전환 (ko/ja/en/zh/es/pt) */}
-        <div className="cs-langsw" role="group" aria-label="Language">
-          {[
-            ['ko', '한'],
-            ['ja', '日'],
-            ['en', 'EN'],
-            ['zh', '中'],
-            ['es', 'ES'],
-            ['pt', 'PT'],
-          ].map(([code, label]) => (
-            <button
-              key={code}
-              className={lang === code ? 'on' : ''}
-              onClick={() => changeLang(code)}
-              aria-pressed={lang === code}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
 
         {/* 로그인 버튼은 디바이스 토글 왼쪽, 디바이스 토글은 맨 오른쪽 */}
         <AuthBar />
@@ -822,6 +802,28 @@ export default function StudioShell() {
                   📖 사용법 가이드
                 </button>
                 <div className="cs-gprow">
+                  <span className="cs-gplb">언어</span>
+                  <div className="cs-langsw" role="group" aria-label="Language">
+                    {[
+                      ['ko', '한'],
+                      ['ja', '日'],
+                      ['en', 'EN'],
+                      ['zh', '中'],
+                      ['es', 'ES'],
+                      ['pt', 'PT'],
+                    ].map(([code, label]) => (
+                      <button
+                        key={code}
+                        className={lang === code ? 'on' : ''}
+                        onClick={() => changeLang(code)}
+                        aria-pressed={lang === code}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="cs-gprow">
                   <span className="cs-gplb">백업</span>
                   <div className="cs-gpbtns">
                     <button onClick={backupDownload} title="데이터 백업 (JSON 내려받기)">
@@ -833,6 +835,24 @@ export default function StudioShell() {
                     >
                       ⤒ 불러오기
                     </button>
+                  </div>
+                </div>
+                <div className="cs-gprow">
+                  <span className="cs-gplb">화면</span>
+                  <div className="cs-laysw" role="group" aria-label="화면">
+                    {[
+                      ['auto', '자동'],
+                      ['phone', '모바일'],
+                      ['desktop', '컴퓨터'],
+                    ].map(([mode, label]) => (
+                      <button
+                        key={mode}
+                        className={dev === mode ? 'on' : ''}
+                        onClick={() => changeDev(mode)}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="cs-gphint">
@@ -854,30 +874,6 @@ export default function StudioShell() {
           />
         </div>
 
-        <div className="cs-devtoggle" title="화면 미리보기 전환">
-          <button
-            className={dev === 'auto' ? 'on' : ''}
-            onClick={() => changeDev('auto')}
-            title="데스크톱·태블릿"
-            aria-label="데스크톱 보기"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="4" width="20" height="13" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-            </svg>
-          </button>
-          <button
-            className={dev === 'phone' ? 'on' : ''}
-            onClick={() => changeDev('phone')}
-            title="폰 화면"
-            aria-label="폰 보기"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="6" y="2" width="12" height="20" rx="2.5" />
-              <path d="M11 18h2" />
-            </svg>
-          </button>
-        </div>
       </header>
 
       <div className="cs-frames">
