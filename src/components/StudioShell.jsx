@@ -96,6 +96,133 @@ const FRAME_OF = {
   gamemodel: 'gamemodel',
 }
 
+// ── 공유: 상태를 URL 해시로 압축(deflate-raw + base64url). 백엔드 없이 링크 공유 ──
+function zips(str) {
+  const cs = new CompressionStream('deflate-raw')
+  const w = cs.writable.getWriter()
+  w.write(new TextEncoder().encode(str))
+  w.close()
+  return new Response(cs.readable).arrayBuffer().then((buf) => {
+    let b = ''
+    new Uint8Array(buf).forEach((x) => {
+      b += String.fromCharCode(x)
+    })
+    return btoa(b).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  })
+}
+function unzips(b64) {
+  b64 = b64.replace(/-/g, '+').replace(/_/g, '/')
+  while (b64.length % 4) b64 += '='
+  const bin = atob(b64)
+  const u = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i)
+  const ds = new DecompressionStream('deflate-raw')
+  const w = ds.writable.getWriter()
+  w.write(u)
+  w.close()
+  return new Response(ds.readable)
+    .arrayBuffer()
+    .then((buf) => new TextDecoder().decode(buf))
+}
+
+// 공유 링크 수신 뷰어 (작전판/세션/주간 일정)
+function ShareViewer({ obj, onClose, onImport }) {
+  const title =
+    (obj.kind === 'board'
+      ? '공유된 작전판'
+      : obj.kind === 'session'
+        ? '공유된 훈련 세션'
+        : '공유된 주간 일정') + (obj.title ? ' · ' + obj.title : '')
+  return (
+    <div className="shview" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="shp">
+        <h3>{title}</h3>
+        {obj.kind === 'board' && obj.thumb && (
+          <img
+            alt="작전판"
+            src={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(obj.thumb)}
+          />
+        )}
+        {obj.kind === 'session' && obj.drills && (
+          <>
+            <div style={{ fontSize: '12.5px', color: '#7d828c', margin: '-6px 0 12px' }}>
+              {obj.drills.length}개 드릴 · 총{' '}
+              {obj.drills.reduce((s, d) => s + (+d.minutes || 0), 0)}분
+              {obj.date ? ' · ' + obj.date : ''}
+              {obj.md ? ' · ' + obj.md : ''}
+            </div>
+            {obj.drills.map((d, ix) => (
+              <div
+                key={ix}
+                style={{ display: 'flex', gap: '12px', padding: '10px 0', borderTop: '1px solid var(--line)' }}
+              >
+                {d.thumb && (
+                  <img
+                    alt=""
+                    style={{ width: '118px', height: '74px', objectFit: 'cover', border: '1px solid var(--line)', borderRadius: '8px', flex: '0 0 auto', background: '#fff' }}
+                    src={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(d.thumb)}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--txt)' }}>
+                    {ix + 1}. {d.name}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#7d828c', margin: '2px 0 4px' }}>
+                    {(d.focus ? d.focus + ' · ' : '') + 'RPE ' + d.rpe + ' · ' + (d.sets > 1 && d.per ? d.per + '분×' + d.sets + '세트' : (d.minutes || 0) + '분')}
+                  </div>
+                  {d.overview && (
+                    <div style={{ fontSize: '12px', color: 'var(--txt)' }}>{d.overview}</div>
+                  )}
+                  {d.coaching && (
+                    <div style={{ fontSize: '11.5px', color: '#7d828c', marginTop: '2px' }}>
+                      코칭: {d.coaching}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+        {obj.kind === 'week' && obj.days && (
+          <table>
+            <tbody>
+              {obj.days.map((d, i) => (
+                <tr key={i}>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    {d.d + (d.md ? ' · ' + d.md : '') + (d.match ? ' · 경기' : '') + (d.off ? ' · OFF' : '')}
+                  </td>
+                  <td>
+                    {!(d.tr && d.tr.length) && !d.match ? (
+                      <span style={{ color: '#9097A0' }}>—</span>
+                    ) : (
+                      (d.tr || []).map((x, j) => (
+                        <div key={j}>
+                          <div>{(x.time ? x.time + ' · ' : '') + (x.aims || '훈련') + ' · ' + (x.mins || 0) + '분'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#7d828c', margin: '1px 0 6px' }}>
+                            {(x.blocks || []).map((b2) => (b2.theme || b2.phase || '') + (b2.theme && b2.phase ? ' (' + b2.phase + ')' : '') + " " + (b2.dur || 0) + "'").join('  /  ')}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <div className="shact">
+          {obj.kind === 'board' && obj.snap && (
+            <button className="pri" onClick={() => onImport(obj.snap)}>
+              내 작전판으로 불러오기
+            </button>
+          )}
+          <button onClick={onClose}>닫기</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function StudioShell() {
   const { user } = useAuth()
   const [app, setApp] = useState('board') // 'board' | 'process' | 'gamemodel'
@@ -188,6 +315,73 @@ export default function StudioShell() {
       alert('백업 파일을 읽을 수 없어요')
     }
   }
+
+  // ── 공유: 현재 앱(작전판/세션/주간)을 압축 링크로 복사 ──
+  const [shareObj, setShareObj] = useState(null)
+  async function shareCurrent() {
+    // design/board → 보드 iframe, process → 일정 iframe
+    const ref = app === 'process' ? processRef : boardRef
+    const win = ref.current?.contentWindow
+    if (!win || typeof win.__exportShare !== 'function') {
+      alert('지금 화면은 공유를 지원하지 않아요')
+      return
+    }
+    let data
+    try {
+      data = win.__exportShare()
+    } catch (_) {
+      data = null
+    }
+    if (!data) {
+      alert('공유할 내용이 없어요')
+      return
+    }
+    try {
+      const z = await zips(JSON.stringify(data))
+      const url = location.href.split('#')[0] + '#share=' + z
+      if (url.length > 60000) {
+        alert('내용이 너무 커서 링크로 공유할 수 없어요')
+        return
+      }
+      try {
+        await navigator.clipboard.writeText(url)
+        alert('공유 링크를 복사했어요 — 붙여넣어 전달하세요')
+      } catch (_) {
+        prompt('아래 링크를 복사해 전달하세요', url)
+      }
+    } catch (_) {
+      alert('공유 링크를 만들 수 없어요')
+    }
+  }
+  // 수신: URL 해시(#share=)로 들어오면 압축을 풀어 뷰어로 표시
+  useEffect(() => {
+    if (location.hash.indexOf('#share=') !== 0) return
+    const z = location.hash.slice('#share='.length)
+    unzips(z)
+      .then((s) => {
+        try {
+          setShareObj(JSON.parse(s))
+        } catch (_) {}
+      })
+      .catch(() => {})
+  }, [])
+  function closeShare() {
+    setShareObj(null)
+    try {
+      history.replaceState(null, '', location.pathname + location.search)
+    } catch (_) {}
+  }
+  function importShare(snap) {
+    const win = boardRef.current?.contentWindow
+    if (win && typeof win.__importShare === 'function') {
+      try {
+        win.__importShare(snap)
+      } catch (_) {}
+    }
+    setApp('board')
+    closeShare()
+  }
+
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
   const savedClearTimer = useRef(null)
@@ -538,6 +732,23 @@ export default function StudioShell() {
         {/* 로그인 버튼은 디바이스 토글 왼쪽, 디바이스 토글은 맨 오른쪽 */}
         <AuthBar />
 
+        {(app === 'board' || app === 'design' || app === 'process') && (
+          <button
+            className="cs-share"
+            title="공유 링크 복사"
+            aria-label="공유"
+            onClick={shareCurrent}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" />
+              <line x1="15.4" y1="6.5" x2="8.6" y2="10.5" />
+            </svg>
+          </button>
+        )}
+
         <div className="cs-gear">
           <button
             className="cs-gearbtn"
@@ -840,6 +1051,10 @@ export default function StudioShell() {
             </button>
           </div>
         </div>
+      )}
+
+      {shareObj && (
+        <ShareViewer obj={shareObj} onClose={closeShare} onImport={importShare} />
       )}
     </div>
   )

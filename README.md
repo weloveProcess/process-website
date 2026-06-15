@@ -10,6 +10,16 @@
 
 > 이 저장소는 **개발할 때마다 이 섹션에 내용을 누적 기록**합니다.
 
+### 2026-06-15 — 셸 기능 보강(웰컴·백업·공유) — 최종본 반영
+- 최종본(임베디드 셸)에 있던 셸 레벨 기능을 React 스튜디오 셸(`src/components/StudioShell.jsx`)에 이식.
+- **웰컴 화면**: 첫 방문 시 앱 소개 모달(`cs_welcomed_v1` 플래그), 가이드/시작 버튼.
+- **설정(기어) 팝업 + 백업**: 사용법 가이드 링크, 데이터 백업 **내려받기/불러오기**(JSON).
+  localStorage + IndexedDB(`window.storage.getAll()`)를 모두 수집·복원 — `idb-store.js` 에 `getAll()` 추가,
+  셸(부모)에도 `idb-store.js` 로드(`studio/index.html`).
+- **공유 링크**: 작전판·훈련 세션·주간 일정을 백엔드 없이 URL 해시로 공유.
+  현재 앱의 `__exportShare()` → `deflate-raw`+base64url 압축(`zips`) → `#share=` 링크 클립보드 복사.
+  수신 시 `#share=` 해시를 풀어(`unzips`) 뷰어로 표시, 작전판은 **내 작전판으로 불러오기**(`__importShare`).
+
 ### 2026-06-11 — 멀티페이지 통합(마케팅 홈 + 가이드)
 - 별도 브랜치(`feat/home-i18n-myprocess`, `feat/studio-guide`)의 기능을 develop 구조에 맞게 통합.
 - **Vite 멀티페이지**(`vite.config.js` `rollupOptions.input`): `/`=마케팅 홈, `/studio/`=React 스튜디오,
