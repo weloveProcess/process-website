@@ -60,6 +60,16 @@ const HINTS = {
   print: '월간·주간·일간·매치데이 빈 양식을 인쇄하거나 PDF로 저장하세요',
 }
 
+// 첫 방문 웰컴 화면의 탭 소개
+const WELCOME_ITEMS = [
+  ['보드', '전술 작전판 · 경기·미팅 모드'],
+  ['훈련 디자인', '드릴을 쌓아 오늘 세션 설계'],
+  ['일정', '경기일(MD) 기준 주간·월간 계획'],
+  ['팀', '선수단 · 스카우트 · 게임모델'],
+  ['노트', '펜슬 필기 노트 · PDF 불러오기'],
+  ['양식', '펜으로 쓰는 1장짜리 인쇄 폼'],
+]
+
 // 출력 양식 카드 (문서는 process/scout iframe 이 생성)
 const PRINT_FORMS = [
   { k: 'month', icon: '📅', name: '월간 양식', desc: '이번 달 달력 + 기입 칸' },
@@ -101,6 +111,20 @@ export default function StudioShell() {
   const [printPreview, setPrintPreview] = useState(null)
   const [printInk, setPrintInk] = useState(false)
   const pvIframeRef = useRef(null)
+  // 첫 방문 웰컴 화면
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return !localStorage.getItem('cs_welcomed_v1')
+    } catch (_) {
+      return false
+    }
+  })
+  function dismissWelcome() {
+    setShowWelcome(false)
+    try {
+      localStorage.setItem('cs_welcomed_v1', '1')
+    } catch (_) {}
+  }
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
   const savedClearTimer = useRef(null)
@@ -660,6 +684,40 @@ export default function StudioShell() {
           )}
           {saveStatus === 'error' && <>저장 실패 — 다시 시도할게요</>}
           <style>{'@keyframes csspin{to{transform:rotate(360deg)}}'}</style>
+        </div>
+      )}
+
+      {showWelcome && (
+        <div className="cs-welcome" onMouseDown={(e) => { if (e.target === e.currentTarget) dismissWelcome() }}>
+          <div className="cw-card">
+            <div className="cw-h">
+              <span className="wm">
+                <b>PRO</b>CESS <b>STUDIO</b>
+              </span>
+            </div>
+            <div className="cw-sub">코치의 과정을 하나로 — 탭에서 전환하세요.</div>
+            <div className="cw-list">
+              {WELCOME_ITEMS.map(([t, d]) => (
+                <div className="cw-i" key={t}>
+                  <b>{t}</b>
+                  <span>{d}</span>
+                </div>
+              ))}
+            </div>
+            <div className="cw-note">
+              💾 데이터는 이 기기 브라우저에 저장돼요. 로그인하면 Supabase에
+              자동 백업되고, 기기를 옮겨도 이어집니다.
+            </div>
+            <button
+              className="cw-guide"
+              onClick={() => window.open('/guide/', '_blank', 'noopener')}
+            >
+              사용법 가이드 보기
+            </button>
+            <button className="cw-ok" onClick={dismissWelcome}>
+              시작하기
+            </button>
+          </div>
         </div>
       )}
     </div>
