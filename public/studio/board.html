@@ -1223,7 +1223,7 @@
             <label class="uni-w" title="상대 유니폼 색"><span class="cpwheel"><input type="color" id="vmColAway"></span>상대</label>
             <button class="uni-reset" id="vmColReset" title="기본 유니폼색">⟲</button>
           </div></div>
-          <div class="menurow"><span class="menulbl">표시</span><div class="seg" id="labelSeg"><button data-l="pos" class="on">포지션</button><button data-l="num">번호</button></div></div>
+          <div class="menurow"><span class="menulbl">표시</span><div class="seg" id="labelSeg"><button data-l="pos">포지션</button><button data-l="num" class="on">번호</button></div></div>
           <div class="menurow"><span class="menulbl">라인</span><div class="seg" id="lineSeg"><button data-ln="on" class="on">표시</button><button data-ln="off">숨김</button></div></div>
           <div class="menurow"><span class="menulbl">그리드</span><div class="seg" id="gridSeg"><button data-g="off">끄기</button><button data-g="lanes" class="on">5레인</button><button data-g="grid">격자</button><button data-g="zone20">20존</button><button data-g="thirds">삼등분</button></div></div>
           <div class="menurow"><span class="menulbl">크기</span><div class="group" id="sizeGroup"><button class="btn" id="allDown">－</button><button class="btn" id="allUp">＋</button></div></div>
@@ -1637,7 +1637,7 @@ const MDS=["MD-5","MD-4","MD-3","MD-2","MD-1","MD","MD+1"];
 
 const DRAW_TOOLS=["run","pass","dribble","line","dashline","free","rect","rectline","rectdash"];
 const isDraw=()=>DRAW_TOOLS.includes(state.tool);
-const state={orientation:"h",area:"full",tool:"move",color:"#1c1c1e",tokenScale:0.63,grid:true,lines:true,gridType:"lanes",label:"pos",
+const state={orientation:"h",area:"full",tool:"move",color:"#1c1c1e",tokenScale:0.63,grid:true,lines:true,gridType:"lanes",label:"num",
   players:[],equipment:[],ball:{x:CX,y:CY},drawings:[],teamColors:{}};
 let uid=1;
 let autoOrient=true; // phone-width auto-rotates pitch to vertical until user picks an orientation
@@ -1791,7 +1791,7 @@ function tokenTransform(p){const _ed=document.body.classList.contains("editing")
   return `translate(${p.x},${p.y})`+(state.orientation==="v"?" rotate(90)":"")+(p.rot?` rotate(${p.rot})`:"")+(s!==1?` scale(${s})`:"");}
 const SHIRT_D="M -8 -20 C -10.5 -20 -13.8 -19.3 -16.5 -18.2 L -23 -14.3 L -19.3 -4.6 L -14.6 -7.2 L -14.6 16.5 Q -14.6 20.5 -10.6 20.5 L 10.6 20.5 Q 14.6 20.5 14.6 16.5 L 14.6 -7.2 L 19.3 -4.6 L 23 -14.3 L 16.5 -18.2 C 13.8 -19.3 10.5 -20 8 -20 Q 0 -12.6 -8 -20 Z";
 const SHIRT_ACC="M -7.5 -19.6 Q 0 -12.6 7.5 -19.6 M -22.2 -13.6 L -18.9 -5.2 M 22.2 -13.6 L 18.9 -5.2";
-let tokShape=(function(){try{return localStorage.getItem("cs_tokshape")||"shirt";}catch(_){return "shirt";}})();
+let tokShape=(function(){try{return localStorage.getItem("cs_tokshape")||"circle";}catch(_){return "circle";}})();
 function setTokShape(v){tokShape=v;try{localStorage.setItem("cs_tokshape",v);}catch(_){}}
 const EQUIP_TYPES=["cone","marker","goalH","ball","dummy","pole","hurdle","ladder"];
 const EQUIP_LABEL={cone:"콘",marker:"마커",goalH:"골대",goalV:"골대 세로",goal:"골대",ball:"볼",dummy:"더미",pole:"폴",hurdle:"허들",ladder:"사다리",dome:"돔",flag:"코너깃발",tire:"타이어"};
@@ -3991,6 +3991,9 @@ function init(){
   // 저장된 피치 테마 복원(기본 잔디). navy 는 속성 없음.
   try{var _sp=localStorage.getItem("cs_pitch");if(_sp){document.documentElement.dataset.pitch=(_sp==="navy"?"":_sp);
     document.querySelectorAll("#pitchSeg button").forEach(b=>b.classList.toggle("on",b.dataset.p===_sp));}}catch(_){}
+  // 저장된 라벨 모드 복원(기본 번호)
+  try{var _sl=localStorage.getItem("cs_label");if(_sl){state.label=_sl;
+    document.querySelectorAll("#labelSeg button").forEach(b=>b.classList.toggle("on",b.dataset.l===_sl));}}catch(_){}
   buildPitch();applyDefaultXI();renderDrawings();
   document.querySelectorAll("#orientSeg button").forEach(b=>b.classList.toggle("on",b.dataset.o===state.orientation));
 
@@ -4020,7 +4023,7 @@ function init(){
   seg("orientSeg","data-o",o=>{state.orientation=o;autoOrient=false;applyView();renderTokens();renderDrawings();});
   seg("areaSeg","data-a",a=>{state.area=a;applyView();});
   seg("pitchSeg","data-p",p=>{document.documentElement.dataset.pitch=(p==="navy"?"":p);try{localStorage.setItem("cs_pitch",p);}catch(_){}buildPitch();renderTokens();renderDrawings();updateDelUI();});
-  seg("labelSeg","data-l",l=>{state.label=l;renderBench();renderTokens();});
+  seg("labelSeg","data-l",l=>{state.label=l;try{localStorage.setItem("cs_label",l);}catch(_){}renderBench();renderTokens();});
   seg("lineSeg","data-ln",v=>{state.lines=(v==="on");buildPitch();renderTokens();renderDrawings();updateDelUI();});
   seg("gridSeg","data-g",v=>{state.gridType=v;buildPitch();renderTokens();renderDrawings();updateDelUI();});
   // 보기▾ 유니폼 색 — 경기 모드(sbCol*)와 동일 동작
