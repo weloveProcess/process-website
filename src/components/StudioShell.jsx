@@ -60,6 +60,16 @@ const HINTS = {
   print: '월간·주간·일간·매치데이 빈 양식을 인쇄하거나 PDF로 저장하세요',
 }
 
+// 첫 방문 웰컴 화면의 탭 소개
+const WELCOME_ITEMS = [
+  ['보드', '전술 작전판 · 경기·미팅 모드'],
+  ['훈련 디자인', '드릴을 쌓아 오늘 세션 설계'],
+  ['일정', '경기일(MD) 기준 주간·월간 계획'],
+  ['팀', '선수단 · 스카우트 · 게임모델'],
+  ['노트', '펜슬 필기 노트 · PDF 불러오기'],
+  ['양식', '펜으로 쓰는 1장짜리 인쇄 폼'],
+]
+
 // 출력 양식 카드 (문서는 process/scout iframe 이 생성)
 const PRINT_FORMS = [
   { k: 'month', icon: '📅', name: '월간 양식', desc: '이번 달 달력 + 기입 칸' },
@@ -86,6 +96,133 @@ const FRAME_OF = {
   gamemodel: 'gamemodel',
 }
 
+// ── 공유: 상태를 URL 해시로 압축(deflate-raw + base64url). 백엔드 없이 링크 공유 ──
+function zips(str) {
+  const cs = new CompressionStream('deflate-raw')
+  const w = cs.writable.getWriter()
+  w.write(new TextEncoder().encode(str))
+  w.close()
+  return new Response(cs.readable).arrayBuffer().then((buf) => {
+    let b = ''
+    new Uint8Array(buf).forEach((x) => {
+      b += String.fromCharCode(x)
+    })
+    return btoa(b).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  })
+}
+function unzips(b64) {
+  b64 = b64.replace(/-/g, '+').replace(/_/g, '/')
+  while (b64.length % 4) b64 += '='
+  const bin = atob(b64)
+  const u = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i)
+  const ds = new DecompressionStream('deflate-raw')
+  const w = ds.writable.getWriter()
+  w.write(u)
+  w.close()
+  return new Response(ds.readable)
+    .arrayBuffer()
+    .then((buf) => new TextDecoder().decode(buf))
+}
+
+// 공유 링크 수신 뷰어 (작전판/세션/주간 일정)
+function ShareViewer({ obj, onClose, onImport }) {
+  const title =
+    (obj.kind === 'board'
+      ? '공유된 작전판'
+      : obj.kind === 'session'
+        ? '공유된 훈련 세션'
+        : '공유된 주간 일정') + (obj.title ? ' · ' + obj.title : '')
+  return (
+    <div className="shview" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="shp">
+        <h3>{title}</h3>
+        {obj.kind === 'board' && obj.thumb && (
+          <img
+            alt="작전판"
+            src={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(obj.thumb)}
+          />
+        )}
+        {obj.kind === 'session' && obj.drills && (
+          <>
+            <div style={{ fontSize: '12.5px', color: '#7d828c', margin: '-6px 0 12px' }}>
+              {obj.drills.length}개 드릴 · 총{' '}
+              {obj.drills.reduce((s, d) => s + (+d.minutes || 0), 0)}분
+              {obj.date ? ' · ' + obj.date : ''}
+              {obj.md ? ' · ' + obj.md : ''}
+            </div>
+            {obj.drills.map((d, ix) => (
+              <div
+                key={ix}
+                style={{ display: 'flex', gap: '12px', padding: '10px 0', borderTop: '1px solid var(--line)' }}
+              >
+                {d.thumb && (
+                  <img
+                    alt=""
+                    style={{ width: '118px', height: '74px', objectFit: 'cover', border: '1px solid var(--line)', borderRadius: '8px', flex: '0 0 auto', background: '#fff' }}
+                    src={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(d.thumb)}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--txt)' }}>
+                    {ix + 1}. {d.name}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#7d828c', margin: '2px 0 4px' }}>
+                    {(d.focus ? d.focus + ' · ' : '') + 'RPE ' + d.rpe + ' · ' + (d.sets > 1 && d.per ? d.per + '분×' + d.sets + '세트' : (d.minutes || 0) + '분')}
+                  </div>
+                  {d.overview && (
+                    <div style={{ fontSize: '12px', color: 'var(--txt)' }}>{d.overview}</div>
+                  )}
+                  {d.coaching && (
+                    <div style={{ fontSize: '11.5px', color: '#7d828c', marginTop: '2px' }}>
+                      코칭: {d.coaching}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+        {obj.kind === 'week' && obj.days && (
+          <table>
+            <tbody>
+              {obj.days.map((d, i) => (
+                <tr key={i}>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    {d.d + (d.md ? ' · ' + d.md : '') + (d.match ? ' · 경기' : '') + (d.off ? ' · OFF' : '')}
+                  </td>
+                  <td>
+                    {!(d.tr && d.tr.length) && !d.match ? (
+                      <span style={{ color: '#9097A0' }}>—</span>
+                    ) : (
+                      (d.tr || []).map((x, j) => (
+                        <div key={j}>
+                          <div>{(x.time ? x.time + ' · ' : '') + (x.aims || '훈련') + ' · ' + (x.mins || 0) + '분'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#7d828c', margin: '1px 0 6px' }}>
+                            {(x.blocks || []).map((b2) => (b2.theme || b2.phase || '') + (b2.theme && b2.phase ? ' (' + b2.phase + ')' : '') + " " + (b2.dur || 0) + "'").join('  /  ')}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <div className="shact">
+          {obj.kind === 'board' && obj.snap && (
+            <button className="pri" onClick={() => onImport(obj.snap)}>
+              내 작전판으로 불러오기
+            </button>
+          )}
+          <button onClick={onClose}>닫기</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function StudioShell() {
   const { user } = useAuth()
   const [app, setApp] = useState('board') // 'board' | 'process' | 'gamemodel'
@@ -101,6 +238,150 @@ export default function StudioShell() {
   const [printPreview, setPrintPreview] = useState(null)
   const [printInk, setPrintInk] = useState(false)
   const pvIframeRef = useRef(null)
+  // 첫 방문 웰컴 화면
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return !localStorage.getItem('cs_welcomed_v1')
+    } catch (_) {
+      return false
+    }
+  })
+  function dismissWelcome() {
+    setShowWelcome(false)
+    try {
+      localStorage.setItem('cs_welcomed_v1', '1')
+    } catch (_) {}
+  }
+  // 설정(기어) 팝업 + 백업 다운로드/복원
+  const [gearOpen, setGearOpen] = useState(false)
+  const bkFileRef = useRef(null)
+  async function backupDownload() {
+    const data = {}
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)
+        data[k] = localStorage.getItem(k)
+      }
+    } catch (_) {}
+    try {
+      if (window.storage) Object.assign(data, await window.storage.getAll())
+    } catch (_) {}
+    const payload = {
+      type: 'process-studio-backup',
+      version: 1,
+      date: new Date().toISOString(),
+      data,
+    }
+    const blob = new Blob([JSON.stringify(payload)], {
+      type: 'application/json',
+    })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    const dt = new Date()
+    const p = (n) => (n < 10 ? '0' : '') + n
+    a.download =
+      'process-studio-backup-' +
+      dt.getFullYear() +
+      p(dt.getMonth() + 1) +
+      p(dt.getDate()) +
+      '.json'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000)
+    try {
+      localStorage.setItem('cs_lastbk', String(Date.now()))
+    } catch (_) {}
+    setGearOpen(false)
+  }
+  async function backupRestore(file) {
+    if (!file) return
+    try {
+      const p = JSON.parse(await file.text())
+      if (!p || p.type !== 'process-studio-backup' || !p.data)
+        throw new Error('bad')
+      if (!confirm('백업을 불러오면 현재 데이터를 덮어씁니다. 계속할까요?')) return
+      for (const k of Object.keys(p.data)) {
+        try {
+          localStorage.setItem(k, p.data[k])
+        } catch (_) {}
+        try {
+          if (window.storage) await window.storage.set(k, p.data[k])
+        } catch (_) {}
+      }
+      alert('복원 완료 — 화면을 새로고침합니다')
+      location.reload()
+    } catch (_) {
+      alert('백업 파일을 읽을 수 없어요')
+    }
+  }
+
+  // ── 공유: 현재 앱(작전판/세션/주간)을 압축 링크로 복사 ──
+  const [shareObj, setShareObj] = useState(null)
+  async function shareCurrent() {
+    // design/board → 보드 iframe, process → 일정 iframe
+    const ref = app === 'process' ? processRef : boardRef
+    const win = ref.current?.contentWindow
+    if (!win || typeof win.__exportShare !== 'function') {
+      alert('지금 화면은 공유를 지원하지 않아요')
+      return
+    }
+    let data
+    try {
+      data = win.__exportShare()
+    } catch (_) {
+      data = null
+    }
+    if (!data) {
+      alert('공유할 내용이 없어요')
+      return
+    }
+    try {
+      const z = await zips(JSON.stringify(data))
+      const url = location.href.split('#')[0] + '#share=' + z
+      if (url.length > 60000) {
+        alert('내용이 너무 커서 링크로 공유할 수 없어요')
+        return
+      }
+      try {
+        await navigator.clipboard.writeText(url)
+        alert('공유 링크를 복사했어요 — 붙여넣어 전달하세요')
+      } catch (_) {
+        prompt('아래 링크를 복사해 전달하세요', url)
+      }
+    } catch (_) {
+      alert('공유 링크를 만들 수 없어요')
+    }
+  }
+  // 수신: URL 해시(#share=)로 들어오면 압축을 풀어 뷰어로 표시
+  useEffect(() => {
+    if (location.hash.indexOf('#share=') !== 0) return
+    const z = location.hash.slice('#share='.length)
+    unzips(z)
+      .then((s) => {
+        try {
+          setShareObj(JSON.parse(s))
+        } catch (_) {}
+      })
+      .catch(() => {})
+  }, [])
+  function closeShare() {
+    setShareObj(null)
+    try {
+      history.replaceState(null, '', location.pathname + location.search)
+    } catch (_) {}
+  }
+  function importShare(snap) {
+    const win = boardRef.current?.contentWindow
+    if (win && typeof win.__importShare === 'function') {
+      try {
+        win.__importShare(snap)
+      } catch (_) {}
+    }
+    setApp('board')
+    closeShare()
+  }
+
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
   const savedClearTimer = useRef(null)
@@ -451,6 +732,81 @@ export default function StudioShell() {
         {/* 로그인 버튼은 디바이스 토글 왼쪽, 디바이스 토글은 맨 오른쪽 */}
         <AuthBar />
 
+        {(app === 'board' || app === 'design' || app === 'process') && (
+          <button
+            className="cs-share"
+            title="공유 링크 복사"
+            aria-label="공유"
+            onClick={shareCurrent}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" />
+              <line x1="15.4" y1="6.5" x2="8.6" y2="10.5" />
+            </svg>
+          </button>
+        )}
+
+        <div className="cs-gear">
+          <button
+            className="cs-gearbtn"
+            title="설정"
+            aria-label="설정"
+            onClick={() => setGearOpen((v) => !v)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
+          </button>
+          {gearOpen && (
+            <>
+              <div className="cs-gearscrim" onClick={() => setGearOpen(false)} />
+              <div className="cs-gearpop">
+                <button
+                  className="cs-gprow-btn"
+                  onClick={() => {
+                    setGearOpen(false)
+                    window.open('/guide/', '_blank', 'noopener')
+                  }}
+                >
+                  📖 사용법 가이드
+                </button>
+                <div className="cs-gprow">
+                  <span className="cs-gplb">백업</span>
+                  <div className="cs-gpbtns">
+                    <button onClick={backupDownload} title="데이터 백업 (JSON 내려받기)">
+                      ⤓ 내려받기
+                    </button>
+                    <button
+                      onClick={() => bkFileRef.current?.click()}
+                      title="백업 불러오기 (JSON)"
+                    >
+                      ⤒ 불러오기
+                    </button>
+                  </div>
+                </div>
+                <div className="cs-gphint">
+                  로그인 시 클라우드에 자동 저장돼요. 로그아웃·오프라인 대비
+                  백업을 권장합니다.
+                </div>
+              </div>
+            </>
+          )}
+          <input
+            ref={bkFileRef}
+            type="file"
+            accept="application/json"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              backupRestore(e.target.files && e.target.files[0])
+              e.target.value = ''
+            }}
+          />
+        </div>
+
         <div className="cs-devtoggle" title="화면 미리보기 전환">
           <button
             className={dev === 'auto' ? 'on' : ''}
@@ -661,6 +1017,44 @@ export default function StudioShell() {
           {saveStatus === 'error' && <>저장 실패 — 다시 시도할게요</>}
           <style>{'@keyframes csspin{to{transform:rotate(360deg)}}'}</style>
         </div>
+      )}
+
+      {showWelcome && (
+        <div className="cs-welcome" onMouseDown={(e) => { if (e.target === e.currentTarget) dismissWelcome() }}>
+          <div className="cw-card">
+            <div className="cw-h">
+              <span className="wm">
+                <b>PRO</b>CESS <b>STUDIO</b>
+              </span>
+            </div>
+            <div className="cw-sub">코치의 과정을 하나로 — 탭에서 전환하세요.</div>
+            <div className="cw-list">
+              {WELCOME_ITEMS.map(([t, d]) => (
+                <div className="cw-i" key={t}>
+                  <b>{t}</b>
+                  <span>{d}</span>
+                </div>
+              ))}
+            </div>
+            <div className="cw-note">
+              💾 데이터는 이 기기 브라우저에 저장돼요. 로그인하면 Supabase에
+              자동 백업되고, 기기를 옮겨도 이어집니다.
+            </div>
+            <button
+              className="cw-guide"
+              onClick={() => window.open('/guide/', '_blank', 'noopener')}
+            >
+              사용법 가이드 보기
+            </button>
+            <button className="cw-ok" onClick={dismissWelcome}>
+              시작하기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {shareObj && (
+        <ShareViewer obj={shareObj} onClose={closeShare} onImport={importShare} />
       )}
     </div>
   )
