@@ -12,7 +12,7 @@ import {
   clearLocalKeys,
 } from '../lib/boards'
 
-const STATE_KINDS = ['matchnotes', 'match', 'schedule', 'gamemodel']
+const STATE_KINDS = ['matchnotes', 'match', 'schedule', 'gamemodel', 'note', 'scout']
 
 // 로그아웃 시 비우는 스튜디오 작업 데이터(다음 사용자에게 새지 않도록).
 // UI 환경설정(cs_devmode·cs_onboard_v1)은 유지한다.
@@ -24,6 +24,10 @@ const STUDIO_LOCAL_KEYS = [
   'cs_match_v1',
   'process_coach_v1',
   'cs_gamemodel_v1',
+  'cs_notes_v1',
+  'scout_tool_v1',
+  'cs_squad_v1',
+  'cs_tokshape',
 ]
 async function clearStudioLocal() {
   for (const k of STUDIO_LOCAL_KEYS) {
@@ -38,20 +42,48 @@ async function clearStudioLocal() {
 
 const APPS = [
   { id: 'board', label: '보드' },
+  { id: 'design', label: '훈련 디자인' }, // 보드의 session 뷰 재사용
   { id: 'process', label: '일정' },
+  { id: 'scout', label: '팀' },
+  { id: 'note', label: '노트' },
   { id: 'gamemodel', label: '게임모델' },
+  { id: 'print', label: '출력' }, // 빈 양식 인쇄/PDF (process·scout 가 문서 생성)
 ]
 
 const HINTS = {
   board: '전술·세션을 그리고, 애니메이션·영상으로 내보내세요',
+  design: '작전판에 그림을 그려 드릴을 만들고, 훈련 세션을 설계하세요',
   process: '경기일(MD) 기준 자동 주기화 · 훈련 블록에서 작전판 첨부 가능',
+  scout: '선수 명단·평가·포지션 타깃을 한 곳에서 관리하세요',
+  note: '훈련·경기 노트를 자유롭게 기록하고 정리하세요',
   gamemodel: '4국면별 우리 팀의 플레이 원칙을 정리하고 문서로 내보내세요',
+  print: '월간·주간·일간·매치데이 빈 양식을 인쇄하거나 PDF로 저장하세요',
 }
 
+// 출력 양식 카드 (문서는 process/scout iframe 이 생성)
+const PRINT_FORMS = [
+  { k: 'month', icon: '📅', name: '월간 양식', desc: '이번 달 달력 + 기입 칸' },
+  { k: 'week', icon: '🗓', name: '주간 양식', desc: '월~일 7칸 괘선 폼' },
+  { k: 'day', icon: '📌', name: '일간 양식', desc: '하루 훈련 + 코칭 메모' },
+  { k: 'matchday', icon: '📋', name: '매치데이 양식', desc: '라인업 피치 + 교체·세트피스' },
+]
+
+// design 은 board iframe(session 뷰)을 재사용하므로 별도 src 없음
 const SRC = {
   board: '/studio/board.html',
   process: '/studio/process.html',
+  scout: '/studio/scout.html',
+  note: '/studio/note.html',
   gamemodel: '/studio/gamemodel.html',
+}
+// 어떤 앱 탭이 어떤 iframe 을 보여주는가 (design→board)
+const FRAME_OF = {
+  board: 'board',
+  design: 'board',
+  process: 'process',
+  scout: 'scout',
+  note: 'note',
+  gamemodel: 'gamemodel',
 }
 
 export default function StudioShell() {
@@ -62,7 +94,13 @@ export default function StudioShell() {
   const boardRef = useRef(null)
   const processRef = useRef(null)
   const gamemodelRef = useRef(null)
+  const scoutRef = useRef(null)
+  const noteRef = useRef(null)
   const [boardLoaded, setBoardLoaded] = useState(false)
+  // 출력 미리보기: null | { doc:string, rebuild:(ink)=>string }
+  const [printPreview, setPrintPreview] = useState(null)
+  const [printInk, setPrintInk] = useState(false)
+  const pvIframeRef = useRef(null)
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
   const savedClearTimer = useRef(null)
@@ -112,12 +150,14 @@ export default function StudioShell() {
   // 보드에 캡처를 요청한 앱(process | gamemodel)
   const captureReqRef = useRef('process')
 
-  // 세 iframe 을 새 데이터로 재로딩
+  // iframe 들을 새 데이터로 재로딩
   function reloadFrames() {
     setBoardLoaded(false)
     if (boardRef.current) boardRef.current.src = SRC.board
     if (processRef.current) processRef.current.src = SRC.process
     if (gamemodelRef.current) gamemodelRef.current.src = SRC.gamemodel
+    if (scoutRef.current) scoutRef.current.src = SRC.scout
+    if (noteRef.current) noteRef.current.src = SRC.note
   }
 
   // 로그인 상태를 앱(iframe)들에 알림 → 앱이 Supabase 사용 여부 결정
@@ -129,6 +169,8 @@ export default function StudioShell() {
           boardRef.current?.contentWindow,
           processRef.current?.contentWindow,
           gamemodelRef.current?.contentWindow,
+          scoutRef.current?.contentWindow,
+          noteRef.current?.contentWindow,
         ]
     for (const w of targets) {
       try {
@@ -189,6 +231,37 @@ export default function StudioShell() {
     } catch (_) {}
   }
 
+  // 출력 양식 카드 클릭 → process/scout iframe 이 문서(HTML)를 생성, 미리보기 표시
+  function openPrintForm(kind) {
+    try {
+      if (kind === 'matchday') {
+        const fn = (ink) =>
+          scoutRef.current?.contentWindow?.__matchdayDoc(true, ink)
+        const doc = fn(false)
+        if (doc) {
+          setPrintInk(false)
+          setPrintPreview({ doc, rebuild: fn })
+        }
+      } else {
+        const doc = processRef.current?.contentWindow?.__buildPrintDoc(kind, true)
+        if (doc) {
+          setPrintInk(false)
+          setPrintPreview({ doc, rebuild: null })
+        }
+      }
+    } catch (_) {
+      alert('아직 준비 중이에요 — 잠시 후 다시 시도해주세요')
+    }
+  }
+  function togglePrintInk(on) {
+    setPrintInk(on)
+    if (printPreview?.rebuild) {
+      try {
+        setPrintPreview({ ...printPreview, doc: printPreview.rebuild(on) })
+      } catch (_) {}
+    }
+  }
+
   // 앱 사이 브리지 릴레이 (보드 ↔ 일정 ↔ 게임모델)
   useEffect(() => {
     function onMessage(e) {
@@ -227,6 +300,35 @@ export default function StudioShell() {
         setApp('process')
         try {
           proc?.postMessage({ type: 'importSession', session: d.session }, '*')
+        } catch (_) {}
+      } else if (d.source === 'board' && d.type === 'sendToWeekAuto') {
+        // 화면 전환 없이 일정에 자동 반영 (process 로드 타이밍 대비 2회 재전송)
+        const postAuto = (n) => {
+          try {
+            proc?.postMessage(
+              {
+                type: 'importSessionAuto',
+                session: d.session,
+                date: d.date,
+                linkId: d.linkId,
+              },
+              '*'
+            )
+          } catch (_) {}
+          if (n > 0) setTimeout(() => postAuto(n - 1), 900)
+        }
+        postAuto(2)
+      } else if (d.source === 'scout' && d.type === 'openGameModel') {
+        setApp('gamemodel')
+      } else if (d.source === 'gamemodel' && d.type === 'backToTeam') {
+        setApp('scout')
+      } else if (d.source === 'gamemodel' && d.type === 'openTeamView') {
+        setApp('scout')
+        try {
+          scoutRef.current?.contentWindow?.postMessage(
+            { type: 'setView', view: d.view },
+            '*'
+          )
         } catch (_) {}
       } else if (d.source === 'board' && d.type === 'focusBoard') {
         setFocus(!!d.on)
@@ -304,6 +406,18 @@ export default function StudioShell() {
     })()
   }, [user])
 
+  // 보드/디자인 탭 전환 시 보드 내부 뷰 지정 (design = session 뷰)
+  useEffect(() => {
+    if (app === 'board' || app === 'design') {
+      try {
+        boardRef.current?.contentWindow?.postMessage(
+          { type: 'setView', view: app === 'design' ? 'session' : 'board' },
+          '*'
+        )
+      } catch (_) {}
+    }
+  }, [app])
+
   const bodyClass = [
     'studio-shell',
     dev === 'phone' ? 'force-phone' : '',
@@ -364,7 +478,7 @@ export default function StudioShell() {
       </header>
 
       <div className="cs-frames">
-        {!boardLoaded && app === 'board' && (
+        {!boardLoaded && (app === 'board' || app === 'design') && (
           <div className="cs-loading">불러오는 중…</div>
         )}
         <iframe
@@ -373,7 +487,7 @@ export default function StudioShell() {
           src={SRC.board}
           allow="fullscreen"
           allowFullScreen
-          style={{ display: app === 'board' ? 'block' : 'none' }}
+          style={{ display: FRAME_OF[app] === 'board' ? 'block' : 'none' }}
           onLoad={(e) => {
             setBoardLoaded(true)
             broadcastAuth(e.target.contentWindow)
@@ -387,13 +501,99 @@ export default function StudioShell() {
           onLoad={(e) => broadcastAuth(e.target.contentWindow)}
         />
         <iframe
+          ref={scoutRef}
+          title="스카우트"
+          src={SRC.scout}
+          style={{ display: app === 'scout' ? 'block' : 'none' }}
+          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+        />
+        <iframe
+          ref={noteRef}
+          title="훈련 노트"
+          src={SRC.note}
+          style={{ display: app === 'note' ? 'block' : 'none' }}
+          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+        />
+        <iframe
           ref={gamemodelRef}
           title="게임 모델"
           src={SRC.gamemodel}
           style={{ display: app === 'gamemodel' ? 'block' : 'none' }}
           onLoad={(e) => broadcastAuth(e.target.contentWindow)}
         />
+        {app === 'print' && (
+          <div className="cs-printpanel">
+            <h2>양식 — 펜으로 쓰는 1장 폼</h2>
+            <p>
+              펜으로 기입하는 1장짜리 폼이에요. 누르면 미리보기가 뜨고, 인쇄하거나
+              PDF로 저장할 수 있어요.
+            </p>
+            <div className="cs-printgrid">
+              {PRINT_FORMS.map((f) => (
+                <button
+                  key={f.k}
+                  className="cs-pcard"
+                  onClick={() => openPrintForm(f.k)}
+                >
+                  <span className="pc-i">{f.icon}</span>
+                  <b>{f.name}</b>
+                  <span>{f.desc}</span>
+                </button>
+              ))}
+            </div>
+            <div className="cs-printnote">
+              ✍️ 기입한 내용이 채워진 출력은 <b>일정</b>·<b>팀</b> 탭 안의 출력
+              버튼에서 — 입력한 일정·라인업이 그대로 폼에 들어갑니다.
+            </div>
+          </div>
+        )}
       </div>
+
+      {printPreview && (
+        <div
+          className="cs-pvov"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setPrintPreview(null)
+          }}
+        >
+          <div className="cs-pvbar">
+            <b>출력 미리보기</b>
+            <div className="cs-pvact">
+              {printPreview.rebuild && (
+                <label className="cs-pvink">
+                  <input
+                    type="checkbox"
+                    checked={printInk}
+                    onChange={(e) => togglePrintInk(e.target.checked)}
+                  />
+                  🖍 잉크 절약
+                </label>
+              )}
+              <button
+                className="cs-pvgo"
+                onClick={() => {
+                  try {
+                    pvIframeRef.current?.contentWindow?.focus()
+                    pvIframeRef.current?.contentWindow?.print()
+                  } catch (_) {}
+                }}
+              >
+                🖨 인쇄 / PDF 저장
+              </button>
+              <button className="cs-pvx" onClick={() => setPrintPreview(null)}>
+                닫기
+              </button>
+            </div>
+          </div>
+          <div className="cs-pvwrap">
+            <iframe
+              ref={pvIframeRef}
+              title="출력 미리보기"
+              srcDoc={printPreview.doc}
+            />
+          </div>
+        </div>
+      )}
 
       {saveStatus && (
         <div

@@ -393,3 +393,25 @@ footer{border-top:1px solid var(--line);padding:70px 0 40px;}
   border-radius:30px;overflow:hidden;box-shadow:0 14px 44px rgba(16,24,40,.22),0 0 0 1px rgba(16,24,40,.07),inset 0 0 0 6px #fff;background:#fff;}
 .studio-shell.force-phone .cs-hint{display:none;}
 .studio-shell.force-phone .cs-loading{background:#D4D7DD;}
+
+/* ── 출력(print) 탭: 양식 카드 + 미리보기 오버레이 ── */
+.cs-printpanel{position:absolute;inset:0;overflow:auto;background:var(--bg);padding:26px 18px 60px;}
+.cs-printpanel>h2{max-width:880px;margin:0 auto 4px;font-size:19px;font-weight:800;color:var(--txt);}
+.cs-printpanel>p{max-width:880px;margin:0 auto 18px;color:var(--dim);font-size:13px;}
+.cs-printgrid{max-width:880px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+.cs-pcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:#fff;border:1px solid var(--line2);border-radius:14px;padding:16px 15px;cursor:pointer;font-family:inherit;text-align:left;transition:.15s;box-shadow:0 1px 2px rgba(16,24,40,.04);}
+.cs-pcard:hover{box-shadow:0 6px 18px rgba(16,24,40,.10);transform:translateY(-1px);}
+.cs-pcard .pc-i{font-size:22px;}
+.cs-pcard b{font-size:14.5px;color:var(--txt);}
+.cs-pcard span:last-child{font-size:12px;color:var(--dim);}
+.cs-printnote{max-width:880px;margin:22px auto 0;background:#fff;border:1px solid var(--line2);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--dim);}
+.cs-pvov{position:fixed;inset:0;z-index:600;background:rgba(16,24,40,.55);backdrop-filter:blur(3px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;}
+.cs-pvbar{display:flex;align-items:center;gap:8px;width:100%;max-width:1000px;justify-content:space-between;}
+.cs-pvbar>b{color:#fff;font-size:14px;}
+.cs-pvact{display:flex;gap:8px;align-items:center;}
+.cs-pvink{display:inline-flex;align-items:center;gap:5px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+.cs-pvink input{accent-color:#3a6df0;}
+.cs-pvgo{border:0;background:#3a6df0;color:#fff;font-weight:800;font-size:13px;border-radius:9px;padding:9px 16px;cursor:pointer;font-family:inherit;}
+.cs-pvx{border:0;background:#fff;color:#16181C;font-weight:700;font-size:13px;border-radius:9px;padding:9px 14px;cursor:pointer;font-family:inherit;}
+.cs-pvwrap{background:#fff;border-radius:6px;box-shadow:0 24px 70px rgba(16,24,40,.45);overflow:hidden;width:min(94vw,1000px);height:min(80vh,1200px);}
+.cs-pvwrap iframe{border:0;width:100%;height:100%;display:block;background:#fff;}
