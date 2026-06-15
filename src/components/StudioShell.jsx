@@ -42,20 +42,38 @@ async function clearStudioLocal() {
 
 const APPS = [
   { id: 'board', label: '보드' },
+  { id: 'design', label: '훈련 디자인' }, // 보드의 session 뷰 재사용
   { id: 'process', label: '일정' },
+  { id: 'scout', label: '팀' },
+  { id: 'note', label: '노트' },
   { id: 'gamemodel', label: '게임모델' },
 ]
 
 const HINTS = {
   board: '전술·세션을 그리고, 애니메이션·영상으로 내보내세요',
+  design: '작전판에 그림을 그려 드릴을 만들고, 훈련 세션을 설계하세요',
   process: '경기일(MD) 기준 자동 주기화 · 훈련 블록에서 작전판 첨부 가능',
+  scout: '선수 명단·평가·포지션 타깃을 한 곳에서 관리하세요',
+  note: '훈련·경기 노트를 자유롭게 기록하고 정리하세요',
   gamemodel: '4국면별 우리 팀의 플레이 원칙을 정리하고 문서로 내보내세요',
 }
 
+// design 은 board iframe(session 뷰)을 재사용하므로 별도 src 없음
 const SRC = {
   board: '/studio/board.html',
   process: '/studio/process.html',
+  scout: '/studio/scout.html',
+  note: '/studio/note.html',
   gamemodel: '/studio/gamemodel.html',
+}
+// 어떤 앱 탭이 어떤 iframe 을 보여주는가 (design→board)
+const FRAME_OF = {
+  board: 'board',
+  design: 'board',
+  process: 'process',
+  scout: 'scout',
+  note: 'note',
+  gamemodel: 'gamemodel',
 }
 
 export default function StudioShell() {
@@ -66,6 +84,8 @@ export default function StudioShell() {
   const boardRef = useRef(null)
   const processRef = useRef(null)
   const gamemodelRef = useRef(null)
+  const scoutRef = useRef(null)
+  const noteRef = useRef(null)
   const [boardLoaded, setBoardLoaded] = useState(false)
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
@@ -116,12 +136,14 @@ export default function StudioShell() {
   // 보드에 캡처를 요청한 앱(process | gamemodel)
   const captureReqRef = useRef('process')
 
-  // 세 iframe 을 새 데이터로 재로딩
+  // iframe 들을 새 데이터로 재로딩
   function reloadFrames() {
     setBoardLoaded(false)
     if (boardRef.current) boardRef.current.src = SRC.board
     if (processRef.current) processRef.current.src = SRC.process
     if (gamemodelRef.current) gamemodelRef.current.src = SRC.gamemodel
+    if (scoutRef.current) scoutRef.current.src = SRC.scout
+    if (noteRef.current) noteRef.current.src = SRC.note
   }
 
   // 로그인 상태를 앱(iframe)들에 알림 → 앱이 Supabase 사용 여부 결정
@@ -133,6 +155,8 @@ export default function StudioShell() {
           boardRef.current?.contentWindow,
           processRef.current?.contentWindow,
           gamemodelRef.current?.contentWindow,
+          scoutRef.current?.contentWindow,
+          noteRef.current?.contentWindow,
         ]
     for (const w of targets) {
       try {
@@ -232,6 +256,35 @@ export default function StudioShell() {
         try {
           proc?.postMessage({ type: 'importSession', session: d.session }, '*')
         } catch (_) {}
+      } else if (d.source === 'board' && d.type === 'sendToWeekAuto') {
+        // 화면 전환 없이 일정에 자동 반영 (process 로드 타이밍 대비 2회 재전송)
+        const postAuto = (n) => {
+          try {
+            proc?.postMessage(
+              {
+                type: 'importSessionAuto',
+                session: d.session,
+                date: d.date,
+                linkId: d.linkId,
+              },
+              '*'
+            )
+          } catch (_) {}
+          if (n > 0) setTimeout(() => postAuto(n - 1), 900)
+        }
+        postAuto(2)
+      } else if (d.source === 'scout' && d.type === 'openGameModel') {
+        setApp('gamemodel')
+      } else if (d.source === 'gamemodel' && d.type === 'backToTeam') {
+        setApp('scout')
+      } else if (d.source === 'gamemodel' && d.type === 'openTeamView') {
+        setApp('scout')
+        try {
+          scoutRef.current?.contentWindow?.postMessage(
+            { type: 'setView', view: d.view },
+            '*'
+          )
+        } catch (_) {}
       } else if (d.source === 'board' && d.type === 'focusBoard') {
         setFocus(!!d.on)
       } else if (d.type === 'db') {
@@ -308,6 +361,18 @@ export default function StudioShell() {
     })()
   }, [user])
 
+  // 보드/디자인 탭 전환 시 보드 내부 뷰 지정 (design = session 뷰)
+  useEffect(() => {
+    if (app === 'board' || app === 'design') {
+      try {
+        boardRef.current?.contentWindow?.postMessage(
+          { type: 'setView', view: app === 'design' ? 'session' : 'board' },
+          '*'
+        )
+      } catch (_) {}
+    }
+  }, [app])
+
   const bodyClass = [
     'studio-shell',
     dev === 'phone' ? 'force-phone' : '',
@@ -368,7 +433,7 @@ export default function StudioShell() {
       </header>
 
       <div className="cs-frames">
-        {!boardLoaded && app === 'board' && (
+        {!boardLoaded && (app === 'board' || app === 'design') && (
           <div className="cs-loading">불러오는 중…</div>
         )}
         <iframe
@@ -377,7 +442,7 @@ export default function StudioShell() {
           src={SRC.board}
           allow="fullscreen"
           allowFullScreen
-          style={{ display: app === 'board' ? 'block' : 'none' }}
+          style={{ display: FRAME_OF[app] === 'board' ? 'block' : 'none' }}
           onLoad={(e) => {
             setBoardLoaded(true)
             broadcastAuth(e.target.contentWindow)
@@ -388,6 +453,20 @@ export default function StudioShell() {
           title="훈련 일정"
           src={SRC.process}
           style={{ display: app === 'process' ? 'block' : 'none' }}
+          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+        />
+        <iframe
+          ref={scoutRef}
+          title="스카우트"
+          src={SRC.scout}
+          style={{ display: app === 'scout' ? 'block' : 'none' }}
+          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+        />
+        <iframe
+          ref={noteRef}
+          title="훈련 노트"
+          src={SRC.note}
+          style={{ display: app === 'note' ? 'block' : 'none' }}
           onLoad={(e) => broadcastAuth(e.target.contentWindow)}
         />
         <iframe
