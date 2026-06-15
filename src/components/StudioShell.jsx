@@ -252,6 +252,20 @@ export default function StudioShell() {
       localStorage.setItem('cs_welcomed_v1', '1')
     } catch (_) {}
   }
+  // 다국어(ko/ja/en/zh/es/pt) — i18n.js 엔진이 DOM 을 직접 번역, 여기선 선택 UI 만
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem('cs_lang') || 'ko'
+    } catch (_) {
+      return 'ko'
+    }
+  })
+  function changeLang(l) {
+    setLang(l)
+    try {
+      window.csI18n?.setLang(l)
+    } catch (_) {}
+  }
   // 설정(기어) 팝업 + 백업 다운로드/복원
   const [gearOpen, setGearOpen] = useState(false)
   const bkFileRef = useRef(null)
@@ -458,6 +472,18 @@ export default function StudioShell() {
         w?.postMessage({ type: 'dbAuth', enabled }, '*')
       } catch (_) {}
     }
+  }
+
+  // iframe(같은 출처) 문서를 다국어 엔진에 등록 → 부모가 직접 번역/감시
+  function registerFrameI18n(win) {
+    try {
+      window.csI18n?.register(win.document, win)
+    } catch (_) {}
+  }
+  // iframe onLoad 공통 처리: 로그인 상태 알림 + 다국어 등록
+  function onFrameLoad(e) {
+    broadcastAuth(e.target.contentWindow)
+    registerFrameI18n(e.target.contentWindow)
   }
 
   // 앱의 DB 요청(StudioDB) 처리 → boards.js 경유 Supabase, 결과를 앱으로 회신
@@ -729,6 +755,27 @@ export default function StudioShell() {
 
         <div className="cs-hint">{HINTS[app]}</div>
 
+        {/* 언어 전환 (ko/ja/en/zh/es/pt) */}
+        <div className="cs-langsw" role="group" aria-label="Language">
+          {[
+            ['ko', '한'],
+            ['ja', '日'],
+            ['en', 'EN'],
+            ['zh', '中'],
+            ['es', 'ES'],
+            ['pt', 'PT'],
+          ].map(([code, label]) => (
+            <button
+              key={code}
+              className={lang === code ? 'on' : ''}
+              onClick={() => changeLang(code)}
+              aria-pressed={lang === code}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* 로그인 버튼은 디바이스 토글 왼쪽, 디바이스 토글은 맨 오른쪽 */}
         <AuthBar />
 
@@ -846,7 +893,7 @@ export default function StudioShell() {
           style={{ display: FRAME_OF[app] === 'board' ? 'block' : 'none' }}
           onLoad={(e) => {
             setBoardLoaded(true)
-            broadcastAuth(e.target.contentWindow)
+            onFrameLoad(e)
           }}
         />
         <iframe
@@ -854,28 +901,28 @@ export default function StudioShell() {
           title="훈련 일정"
           src={SRC.process}
           style={{ display: app === 'process' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         <iframe
           ref={scoutRef}
           title="스카우트"
           src={SRC.scout}
           style={{ display: app === 'scout' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         <iframe
           ref={noteRef}
           title="훈련 노트"
           src={SRC.note}
           style={{ display: app === 'note' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         <iframe
           ref={gamemodelRef}
           title="게임 모델"
           src={SRC.gamemodel}
           style={{ display: app === 'gamemodel' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         {app === 'print' && (
           <div className="cs-printpanel">
