@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<!-- PROCESS — 게임 모델 (프로토타입 v1) -->
+<!-- PROCESS — 게임모델 (프로토타입 v1) -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <style>
@@ -120,7 +120,7 @@
   @media print{
     @page{margin:14mm}
     body{background:#fff}
-    .gmtop,.iconbtn,.addphase,.addprinc,.pdel,.prow .x,.attachbtn,.snapthumb .rm,.foot{display:none!important}
+    .gmtop,.iconbtn,.addphase,.addprinc,.pdel,.prow .x,.attachbtn,.snapthumb .rm,.foot,.gm-docbar{display:none!important}
     .phone,.stage{height:auto;overflow:visible;display:block}
     .moment .mbody{display:block!important}
     .moment{break-inside:avoid;margin:18px 0 0}
@@ -136,22 +136,55 @@
     .idcard textarea{display:block!important;max-height:none!important;overflow:visible!important;padding-top:2px}
   }
   .prdoc{display:none}
+
+.mhead .mtitle{flex:0 1 auto}
+.mhead .chev{margin-left:auto}
+</style>
+<style>
+/* ===== UNIFIED APP HEADER — shared pattern across sub-apps ===== */
+.apphd{flex:0 0 auto;display:flex;align-items:center;gap:14px;
+  padding:9px 14px;padding-top:max(9px,env(safe-area-inset-top));
+  background:#FFFFFF;border-bottom:1px solid #E3E5E9;
+  box-shadow:0 1px 2px rgba(16,24,40,.06);position:sticky;top:0;z-index:40;}
+.apphd-name{display:flex;align-items:center;line-height:1;white-space:nowrap;color:#16181C;
+  font-weight:800;font-size:15px;letter-spacing:-.2px;flex:0 0 auto;}
+.apphd-name .sub{font-size:12px;font-weight:700;color:#5C6068;margin-left:9px;letter-spacing:-.2px;}
+.apphd-name .wm{font-weight:300;letter-spacing:.04em;}
+.apphd-name .wm b{font-weight:800;}
+.apphd-seg{display:flex;background:#F1F2F4;border:1px solid #E3E5E9;border-radius:11px;
+  padding:3px;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex:0 1 auto;}
+.apphd-seg::-webkit-scrollbar{display:none;}
+.apphd-seg button{border:0;background:transparent;color:#5C6068;font-weight:600;font-size:13px;
+  letter-spacing:-.2px;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.15s;
+  white-space:nowrap;font-family:inherit;flex:0 0 auto;}
+.apphd-seg button.on{background:#fff;color:#16181C;box-shadow:0 1px 2px rgba(16,24,40,.08),0 2px 5px rgba(16,24,40,.06);}
+.apphd-seg button:not(.on):hover{color:#16181C;}
+.apphd-act{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+.apphd-iconbtn{border:1px solid #E3E5E9;background:#F1F2F4;color:#16181C;height:34px;min-width:34px;
+  padding:0 13px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:.15s;}
+.apphd-iconbtn:hover{background:#fff;}.apphd-iconbtn:active{transform:scale(.96);}
+@media (max-width:520px){.apphd{gap:9px;padding:8px 12px;}.apphd-name .sub{display:none;}}
+@media print{.apphd{display:none!important;}}
 </style>
 </head>
 <body>
 <div class="phone">
   <div class="stage" id="stage">
 
-    <div class="gmtop">
-      <div class="t">
-        <h1>게임 모델</h1>
-        <small id="subline">우리 팀이 4국면에서 어떻게 플레이하는가</small>
+    <div class="apphd">
+      <div class="apphd-name">팀<span class="sub">구성 · 스카우트</span></div>
+      <div class="apphd-seg" id="gmNav">
+        <button data-v="team">팀 구성</button>
+        <button data-v="players">선수</button>
+        <button data-v="report">스카우트</button>
+        <button data-v="gamemodel" class="on">게임모델</button>
+        <button data-v="positions">기준 설정</button>
       </div>
-      <button class="iconbtn" id="btnDoc" title="문서 보기 / 내보내기">⤓</button>
     </div>
 
     <!-- title shown only when printing -->
-    <div class="prdoc" style="padding:0 0 4px"><h1 style="font-size:22px;font-weight:800" id="prTitle">게임 모델</h1></div>
+    <div class="prdoc" style="padding:0 0 4px"><h1 style="font-size:22px;font-weight:800" id="prTitle">게임모델</h1></div>
 
     <div class="idcard" id="idcard">
       <div class="idhead" id="idHead">
@@ -164,6 +197,9 @@
 
     <div id="moments"></div>
 
+    <div class="gm-docbar" style="display:flex;justify-content:flex-end;margin:20px 22px 4px">
+      <button class="apphd-iconbtn" id="btnDoc" title="PDF로 내보내기">⤓ PDF로 내보내기</button>
+    </div>
     <div class="foot">프로토타입 v1 · 모든 내용은 코치가 직접 정의합니다 · 평가·추천 없음</div>
   </div>
 </div>
@@ -182,7 +218,7 @@
     var P=function(name){return {id:uid(),name:name,principles:[''],snap:null}};
     return {
       identity:'',
-      open:{ao:true,do:false,dt:false,at:false},
+      open:{ao:false,do:false,dt:false,at:false},
       moments:[
         {key:'ao',name:'공격 조직',tag:'IN POSSESSION',phases:[P('빌드업'),P('전진 · 전개'),P('침투 · 마무리')]},
         {key:'do',name:'수비 조직',tag:'OUT OF POSS',phases:[P('전방 압박'),P('미드 블록'),P('로우 블록')]},
@@ -199,8 +235,10 @@
     else { try{ raw=localStorage.getItem(LS); }catch(_){} }
     if(raw){ var m=JSON.parse(raw); if(m) model=m; }
   }catch(e){}
-  if(!model.open) model.open={ao:true,do:false,dt:false,at:false};
+  if(!model || typeof model!=='object' || !Array.isArray(model.moments)) model=seed();   // 잘못된 형태의 저장 데이터 방어
+  model.open={ao:false,do:false,dt:false,at:false};   // 진입 시 항상 접힘으로 시작
 
+  // 로컬 작업 버퍼: IndexedDB(window.storage) 우선, localStorage 폴백 + 로그인 시 부모(셸)가 Supabase 동기화
   function save(){
     var json=null; try{ json=JSON.stringify(model); }catch(e){}
     if(json!=null){
@@ -226,6 +264,7 @@
       head.querySelector('.mtag').textContent=m.tag;
       head.addEventListener('click',function(){
         model.open[m.key]=!model.open[m.key]; sec.classList.toggle('open'); save();
+        if(model.open[m.key]) [].forEach.call(sec.querySelectorAll('textarea'),autosize);
       });
       sec.appendChild(head);
 
@@ -304,7 +343,8 @@
     var row=document.createElement('div'); row.className='prow';
     var b=document.createElement('span'); b.className='b'; b.textContent='·';
     var ta=document.createElement('textarea'); ta.rows=1; ta.value=ph.principles[idx]||'';
-    ta.placeholder='이 국면에서 우리는…';
+    var PH_EX={'빌드업':'예) GK부터 3백으로 폭을 만들어 첫 압박선을 통과한다','전진 · 전개':'예) 하프스페이스의 8번을 경유해 측면을 전진한다','침투 · 마무리':'예) 윙어의 인→아웃 침투로 박스에 3명이 진입한다','전방 압박':'예) 상대 빌드업 시 9번이 CB 패스길을 끊으며 압박을 시작한다','미드 블록':'예) 4-4-2 블록으로 중앙을 닫고 측면으로 유도한다','로우 블록':'예) 박스 앞 공간을 닫고 크로스는 니어를 우선 차단한다','즉시 반응 (역압박)':'예) 상실 즉시 5초간 가장 가까운 3명이 역압박한다','후퇴 · 재정비':'예) 역압박 실패 시 블록 라인까지 후퇴해 재정비한다','빠른 역습':'예) 탈취 후 첫 패스는 전방, 3초 안에 전진한다','점유 안정화':'예) 역습이 닫히면 소유를 안정시키고 폭을 회복한다'};
+    ta.setAttribute('placeholder', PH_EX[ph.name]||'이 국면에서 우리는…');
     ta.addEventListener('input',function(){ ph.principles[idx]=ta.value; autosize(ta); save(); });
     var x=document.createElement('button'); x.className='x'; x.innerHTML='✕';
     x.addEventListener('click',function(){
@@ -322,14 +362,14 @@
   var idHead=document.getElementById('idHead');
   var idPrev=document.getElementById('idPrev');
   identityEl.value=model.identity||'';
-  if(model.idOpen===undefined) model.idOpen=false;
+  model.idOpen=false;   // 진입 시 접힘
   function updateIdPrev(){
     var v=(model.identity||'').trim();
     idPrev.textContent = v ? v : '입력하기';
     idPrev.classList.toggle('placeholder', !v);
   }
   function applyIdOpen(){
-    idcard.classList.toggle('open', !!model.idOpen);
+    idcard.classList.toggle('open', model.idOpen!==false);
     if(model.idOpen) requestAnimationFrame(function(){ autosize(identityEl); });
   }
   updateIdPrev(); applyIdOpen();
@@ -355,11 +395,19 @@
   });
 
   // ---- document view / export ----
+  var _bk=document.getElementById('btnBackTeam');if(_bk)_bk.addEventListener('click',function(){try{parent.postMessage({source:'gamemodel',type:'backToTeam'},'*');}catch(_){}});
+  var _gmNav=document.getElementById('gmNav');if(_gmNav){[].forEach.call(_gmNav.querySelectorAll('button'),function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-v');if(v==='gamemodel')return;try{parent.postMessage({source:'gamemodel',type:'openTeamView',view:v},'*');}catch(_){}});});}
   document.getElementById('btnDoc').addEventListener('click',function(){
     // make sure everything visible for print, then call print
     var prevOpen=JSON.parse(JSON.stringify(model.open));
-    document.getElementById('prTitle').textContent = (model.identity? '게임 모델' : '게임 모델');
+    var prevIdOpen=model.idOpen;
+    document.getElementById('prTitle').textContent='게임모델';
+    [].forEach.call(document.querySelectorAll('.moment'),function(sec){ sec.classList.add('open'); });
+    idcard.classList.add('open');
+    [].forEach.call(document.querySelectorAll('textarea'),autosize);
     window.print();
+    model.open=prevOpen; model.idOpen=prevIdOpen;
+    render(); applyIdOpen();
   });
 
   render();
