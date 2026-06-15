@@ -47,6 +47,7 @@ const APPS = [
   { id: 'scout', label: '팀' },
   { id: 'note', label: '노트' },
   { id: 'gamemodel', label: '게임모델' },
+  { id: 'print', label: '출력' }, // 빈 양식 인쇄/PDF (process·scout 가 문서 생성)
 ]
 
 const HINTS = {
@@ -56,7 +57,16 @@ const HINTS = {
   scout: '선수 명단·평가·포지션 타깃을 한 곳에서 관리하세요',
   note: '훈련·경기 노트를 자유롭게 기록하고 정리하세요',
   gamemodel: '4국면별 우리 팀의 플레이 원칙을 정리하고 문서로 내보내세요',
+  print: '월간·주간·일간·매치데이 빈 양식을 인쇄하거나 PDF로 저장하세요',
 }
+
+// 출력 양식 카드 (문서는 process/scout iframe 이 생성)
+const PRINT_FORMS = [
+  { k: 'month', icon: '📅', name: '월간 양식', desc: '이번 달 달력 + 기입 칸' },
+  { k: 'week', icon: '🗓', name: '주간 양식', desc: '월~일 7칸 괘선 폼' },
+  { k: 'day', icon: '📌', name: '일간 양식', desc: '하루 훈련 + 코칭 메모' },
+  { k: 'matchday', icon: '📋', name: '매치데이 양식', desc: '라인업 피치 + 교체·세트피스' },
+]
 
 // design 은 board iframe(session 뷰)을 재사용하므로 별도 src 없음
 const SRC = {
@@ -87,6 +97,10 @@ export default function StudioShell() {
   const scoutRef = useRef(null)
   const noteRef = useRef(null)
   const [boardLoaded, setBoardLoaded] = useState(false)
+  // 출력 미리보기: null | { doc:string, rebuild:(ink)=>string }
+  const [printPreview, setPrintPreview] = useState(null)
+  const [printInk, setPrintInk] = useState(false)
+  const pvIframeRef = useRef(null)
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
   const savedClearTimer = useRef(null)
@@ -215,6 +229,37 @@ export default function StudioShell() {
     try {
       localStorage.setItem('cs_devmode', mode)
     } catch (_) {}
+  }
+
+  // 출력 양식 카드 클릭 → process/scout iframe 이 문서(HTML)를 생성, 미리보기 표시
+  function openPrintForm(kind) {
+    try {
+      if (kind === 'matchday') {
+        const fn = (ink) =>
+          scoutRef.current?.contentWindow?.__matchdayDoc(true, ink)
+        const doc = fn(false)
+        if (doc) {
+          setPrintInk(false)
+          setPrintPreview({ doc, rebuild: fn })
+        }
+      } else {
+        const doc = processRef.current?.contentWindow?.__buildPrintDoc(kind, true)
+        if (doc) {
+          setPrintInk(false)
+          setPrintPreview({ doc, rebuild: null })
+        }
+      }
+    } catch (_) {
+      alert('아직 준비 중이에요 — 잠시 후 다시 시도해주세요')
+    }
+  }
+  function togglePrintInk(on) {
+    setPrintInk(on)
+    if (printPreview?.rebuild) {
+      try {
+        setPrintPreview({ ...printPreview, doc: printPreview.rebuild(on) })
+      } catch (_) {}
+    }
   }
 
   // 앱 사이 브리지 릴레이 (보드 ↔ 일정 ↔ 게임모델)
@@ -476,7 +521,79 @@ export default function StudioShell() {
           style={{ display: app === 'gamemodel' ? 'block' : 'none' }}
           onLoad={(e) => broadcastAuth(e.target.contentWindow)}
         />
+        {app === 'print' && (
+          <div className="cs-printpanel">
+            <h2>양식 — 펜으로 쓰는 1장 폼</h2>
+            <p>
+              펜으로 기입하는 1장짜리 폼이에요. 누르면 미리보기가 뜨고, 인쇄하거나
+              PDF로 저장할 수 있어요.
+            </p>
+            <div className="cs-printgrid">
+              {PRINT_FORMS.map((f) => (
+                <button
+                  key={f.k}
+                  className="cs-pcard"
+                  onClick={() => openPrintForm(f.k)}
+                >
+                  <span className="pc-i">{f.icon}</span>
+                  <b>{f.name}</b>
+                  <span>{f.desc}</span>
+                </button>
+              ))}
+            </div>
+            <div className="cs-printnote">
+              ✍️ 기입한 내용이 채워진 출력은 <b>일정</b>·<b>팀</b> 탭 안의 출력
+              버튼에서 — 입력한 일정·라인업이 그대로 폼에 들어갑니다.
+            </div>
+          </div>
+        )}
       </div>
+
+      {printPreview && (
+        <div
+          className="cs-pvov"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setPrintPreview(null)
+          }}
+        >
+          <div className="cs-pvbar">
+            <b>출력 미리보기</b>
+            <div className="cs-pvact">
+              {printPreview.rebuild && (
+                <label className="cs-pvink">
+                  <input
+                    type="checkbox"
+                    checked={printInk}
+                    onChange={(e) => togglePrintInk(e.target.checked)}
+                  />
+                  🖍 잉크 절약
+                </label>
+              )}
+              <button
+                className="cs-pvgo"
+                onClick={() => {
+                  try {
+                    pvIframeRef.current?.contentWindow?.focus()
+                    pvIframeRef.current?.contentWindow?.print()
+                  } catch (_) {}
+                }}
+              >
+                🖨 인쇄 / PDF 저장
+              </button>
+              <button className="cs-pvx" onClick={() => setPrintPreview(null)}>
+                닫기
+              </button>
+            </div>
+          </div>
+          <div className="cs-pvwrap">
+            <iframe
+              ref={pvIframeRef}
+              title="출력 미리보기"
+              srcDoc={printPreview.doc}
+            />
+          </div>
+        </div>
+      )}
 
       {saveStatus && (
         <div
