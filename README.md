@@ -10,6 +10,17 @@
 
 > 이 저장소는 **개발할 때마다 이 섹션에 내용을 누적 기록**합니다.
 
+### 2026-06-15 — 스튜디오 다국어(i18n) 6개국어
+- 스튜디오 전체(React 셸 + board·process·scout·note·gamemodel 서브앱)를 **한·日·EN·中·ES·PT** 6개 언어로 번역.
+- **런타임 DOM 번역 엔진**(`public/studio/i18n.js`, 최종본 index(5) 이식): `DICT`(정확 일치) +
+  `RULES`(정규식 동적 문자열)로 한국어 UI 를 치환. `MutationObserver` 로 동적 생성 콘텐츠까지 자동 번역.
+  같은 출처 iframe 의 `contentDocument` 를 부모(셸)에서 직접 `register` → 서브앱 코드 수정 없이 동시 번역
+  (postMessage 불필요). localStorage 키 `cs_lang`.
+- 셸 헤더에 언어 전환기(`.cs-langsw`), 각 iframe `onLoad` 에서 `window.csI18n.register()` 배선.
+  `studio/index.html` 이 React 마운트 전에 `i18n.js` 로드.
+- **번역 사전 약 1,370개 키**: index(5) DICT(881) + develop 서브앱 마크업/JS 라벨·드릴 라이브러리·토스트(약 490) 보강.
+  미번역 잔여는 화면에 안 보이는 `<script>` 소스 텍스트뿐(실 UI 0).
+
 ### 2026-06-15 — 셸 기능 보강(웰컴·백업·공유) — 최종본 반영
 - 최종본(임베디드 셸)에 있던 셸 레벨 기능을 React 스튜디오 셸(`src/components/StudioShell.jsx`)에 이식.
 - **웰컴 화면**: 첫 방문 시 앱 소개 모달(`cs_welcomed_v1` 플래그), 가이드/시작 버튼.

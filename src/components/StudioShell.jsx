@@ -252,6 +252,20 @@ export default function StudioShell() {
       localStorage.setItem('cs_welcomed_v1', '1')
     } catch (_) {}
   }
+  // 다국어(ko/ja/en/zh/es/pt) — i18n.js 엔진이 DOM 을 직접 번역, 여기선 선택 UI 만
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem('cs_lang') || 'ko'
+    } catch (_) {
+      return 'ko'
+    }
+  })
+  function changeLang(l) {
+    setLang(l)
+    try {
+      window.csI18n?.setLang(l)
+    } catch (_) {}
+  }
   // 설정(기어) 팝업 + 백업 다운로드/복원
   const [gearOpen, setGearOpen] = useState(false)
   const bkFileRef = useRef(null)
@@ -458,6 +472,18 @@ export default function StudioShell() {
         w?.postMessage({ type: 'dbAuth', enabled }, '*')
       } catch (_) {}
     }
+  }
+
+  // iframe(같은 출처) 문서를 다국어 엔진에 등록 → 부모가 직접 번역/감시
+  function registerFrameI18n(win) {
+    try {
+      window.csI18n?.register(win.document, win)
+    } catch (_) {}
+  }
+  // iframe onLoad 공통 처리: 로그인 상태 알림 + 다국어 등록
+  function onFrameLoad(e) {
+    broadcastAuth(e.target.contentWindow)
+    registerFrameI18n(e.target.contentWindow)
   }
 
   // 앱의 DB 요청(StudioDB) 처리 → boards.js 경유 Supabase, 결과를 앱으로 회신
@@ -719,6 +745,7 @@ export default function StudioShell() {
           {APPS.map((a) => (
             <button
               key={a.id}
+              data-app={a.id}
               className={app === a.id ? 'on' : ''}
               onClick={() => setApp(a.id)}
             >
@@ -775,6 +802,28 @@ export default function StudioShell() {
                   📖 사용법 가이드
                 </button>
                 <div className="cs-gprow">
+                  <span className="cs-gplb">언어</span>
+                  <div className="cs-langsw" role="group" aria-label="Language">
+                    {[
+                      ['ko', '한'],
+                      ['ja', '日'],
+                      ['en', 'EN'],
+                      ['zh', '中'],
+                      ['es', 'ES'],
+                      ['pt', 'PT'],
+                    ].map(([code, label]) => (
+                      <button
+                        key={code}
+                        className={lang === code ? 'on' : ''}
+                        onClick={() => changeLang(code)}
+                        aria-pressed={lang === code}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="cs-gprow">
                   <span className="cs-gplb">백업</span>
                   <div className="cs-gpbtns">
                     <button onClick={backupDownload} title="데이터 백업 (JSON 내려받기)">
@@ -786,6 +835,24 @@ export default function StudioShell() {
                     >
                       ⤒ 불러오기
                     </button>
+                  </div>
+                </div>
+                <div className="cs-gprow">
+                  <span className="cs-gplb">화면</span>
+                  <div className="cs-laysw" role="group" aria-label="화면">
+                    {[
+                      ['auto', '자동'],
+                      ['phone', '모바일'],
+                      ['desktop', '컴퓨터'],
+                    ].map(([mode, label]) => (
+                      <button
+                        key={mode}
+                        className={dev === mode ? 'on' : ''}
+                        onClick={() => changeDev(mode)}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="cs-gphint">
@@ -807,30 +874,6 @@ export default function StudioShell() {
           />
         </div>
 
-        <div className="cs-devtoggle" title="화면 미리보기 전환">
-          <button
-            className={dev === 'auto' ? 'on' : ''}
-            onClick={() => changeDev('auto')}
-            title="데스크톱·태블릿"
-            aria-label="데스크톱 보기"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="4" width="20" height="13" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-            </svg>
-          </button>
-          <button
-            className={dev === 'phone' ? 'on' : ''}
-            onClick={() => changeDev('phone')}
-            title="폰 화면"
-            aria-label="폰 보기"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="6" y="2" width="12" height="20" rx="2.5" />
-              <path d="M11 18h2" />
-            </svg>
-          </button>
-        </div>
       </header>
 
       <div className="cs-frames">
@@ -846,7 +889,7 @@ export default function StudioShell() {
           style={{ display: FRAME_OF[app] === 'board' ? 'block' : 'none' }}
           onLoad={(e) => {
             setBoardLoaded(true)
-            broadcastAuth(e.target.contentWindow)
+            onFrameLoad(e)
           }}
         />
         <iframe
@@ -854,28 +897,28 @@ export default function StudioShell() {
           title="훈련 일정"
           src={SRC.process}
           style={{ display: app === 'process' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         <iframe
           ref={scoutRef}
           title="스카우트"
           src={SRC.scout}
           style={{ display: app === 'scout' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         <iframe
           ref={noteRef}
           title="훈련 노트"
           src={SRC.note}
           style={{ display: app === 'note' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         <iframe
           ref={gamemodelRef}
           title="게임 모델"
           src={SRC.gamemodel}
           style={{ display: app === 'gamemodel' ? 'block' : 'none' }}
-          onLoad={(e) => broadcastAuth(e.target.contentWindow)}
+          onLoad={(e) => onFrameLoad(e)}
         />
         {app === 'print' && (
           <div className="cs-printpanel">
