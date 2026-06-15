@@ -90,6 +90,8 @@ const STATE_KEY = {
   match: 'cs_match_v1', // 작전판: 경기 정보
   schedule: 'process_coach_v1', // 일정: 훈련 일정 작업본(weeks·dday 등)
   gamemodel: 'cs_gamemodel_v1', // 게임모델: 4국면 플레이 원칙 문서
+  note: 'cs_notes_v1', // 노트: 훈련 노트
+  scout: 'scout_tool_v1', // 스카우트: 선수 평가·포지션 타깃 전체 데이터
 }
 const STATE_TITLE = '_state' // 단일 상태 행의 고정 title
 

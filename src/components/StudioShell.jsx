@@ -12,7 +12,7 @@ import {
   clearLocalKeys,
 } from '../lib/boards'
 
-const STATE_KINDS = ['matchnotes', 'match', 'schedule', 'gamemodel']
+const STATE_KINDS = ['matchnotes', 'match', 'schedule', 'gamemodel', 'note', 'scout']
 
 // 로그아웃 시 비우는 스튜디오 작업 데이터(다음 사용자에게 새지 않도록).
 // UI 환경설정(cs_devmode·cs_onboard_v1)은 유지한다.
@@ -24,6 +24,10 @@ const STUDIO_LOCAL_KEYS = [
   'cs_match_v1',
   'process_coach_v1',
   'cs_gamemodel_v1',
+  'cs_notes_v1',
+  'scout_tool_v1',
+  'cs_squad_v1',
+  'cs_tokshape',
 ]
 async function clearStudioLocal() {
   for (const k of STUDIO_LOCAL_KEYS) {
