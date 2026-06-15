@@ -171,6 +171,45 @@
         return idbDel(db, key)
       })
     },
+    // 전체 {key:value} 반환 (백업용)
+    getAll: function () {
+      return ready.then(function (db) {
+        if (!db) {
+          var o = {}
+          for (var k in mem) o[k] = mem[k]
+          return o
+        }
+        return new Promise(function (resolve) {
+          var out = {},
+            keys = null,
+            vals = null
+          function fin() {
+            if (keys && vals) {
+              for (var i = 0; i < keys.length; i++) out[keys[i]] = vals[i]
+              resolve(out)
+            }
+          }
+          try {
+            var st = tx(db, 'readonly')
+            var kr = st.getAllKeys(),
+              vr = st.getAll()
+            kr.onsuccess = function () {
+              keys = kr.result
+              fin()
+            }
+            vr.onsuccess = function () {
+              vals = vr.result
+              fin()
+            }
+            kr.onerror = vr.onerror = function () {
+              resolve(out)
+            }
+          } catch (_) {
+            resolve(out)
+          }
+        })
+      })
+    },
     // keys 배열을 주면 해당 키만, 없으면 전체 비우기(로그아웃 정리)
     clear: function (keys) {
       return ready.then(function (db) {

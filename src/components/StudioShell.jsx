@@ -125,6 +125,69 @@ export default function StudioShell() {
       localStorage.setItem('cs_welcomed_v1', '1')
     } catch (_) {}
   }
+  // 설정(기어) 팝업 + 백업 다운로드/복원
+  const [gearOpen, setGearOpen] = useState(false)
+  const bkFileRef = useRef(null)
+  async function backupDownload() {
+    const data = {}
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)
+        data[k] = localStorage.getItem(k)
+      }
+    } catch (_) {}
+    try {
+      if (window.storage) Object.assign(data, await window.storage.getAll())
+    } catch (_) {}
+    const payload = {
+      type: 'process-studio-backup',
+      version: 1,
+      date: new Date().toISOString(),
+      data,
+    }
+    const blob = new Blob([JSON.stringify(payload)], {
+      type: 'application/json',
+    })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    const dt = new Date()
+    const p = (n) => (n < 10 ? '0' : '') + n
+    a.download =
+      'process-studio-backup-' +
+      dt.getFullYear() +
+      p(dt.getMonth() + 1) +
+      p(dt.getDate()) +
+      '.json'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000)
+    try {
+      localStorage.setItem('cs_lastbk', String(Date.now()))
+    } catch (_) {}
+    setGearOpen(false)
+  }
+  async function backupRestore(file) {
+    if (!file) return
+    try {
+      const p = JSON.parse(await file.text())
+      if (!p || p.type !== 'process-studio-backup' || !p.data)
+        throw new Error('bad')
+      if (!confirm('백업을 불러오면 현재 데이터를 덮어씁니다. 계속할까요?')) return
+      for (const k of Object.keys(p.data)) {
+        try {
+          localStorage.setItem(k, p.data[k])
+        } catch (_) {}
+        try {
+          if (window.storage) await window.storage.set(k, p.data[k])
+        } catch (_) {}
+      }
+      alert('복원 완료 — 화면을 새로고침합니다')
+      location.reload()
+    } catch (_) {
+      alert('백업 파일을 읽을 수 없어요')
+    }
+  }
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
   const [saveStatus, setSaveStatus] = useState(null)
   const savedClearTimer = useRef(null)
@@ -474,6 +537,64 @@ export default function StudioShell() {
 
         {/* 로그인 버튼은 디바이스 토글 왼쪽, 디바이스 토글은 맨 오른쪽 */}
         <AuthBar />
+
+        <div className="cs-gear">
+          <button
+            className="cs-gearbtn"
+            title="설정"
+            aria-label="설정"
+            onClick={() => setGearOpen((v) => !v)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
+          </button>
+          {gearOpen && (
+            <>
+              <div className="cs-gearscrim" onClick={() => setGearOpen(false)} />
+              <div className="cs-gearpop">
+                <button
+                  className="cs-gprow-btn"
+                  onClick={() => {
+                    setGearOpen(false)
+                    window.open('/guide/', '_blank', 'noopener')
+                  }}
+                >
+                  📖 사용법 가이드
+                </button>
+                <div className="cs-gprow">
+                  <span className="cs-gplb">백업</span>
+                  <div className="cs-gpbtns">
+                    <button onClick={backupDownload} title="데이터 백업 (JSON 내려받기)">
+                      ⤓ 내려받기
+                    </button>
+                    <button
+                      onClick={() => bkFileRef.current?.click()}
+                      title="백업 불러오기 (JSON)"
+                    >
+                      ⤒ 불러오기
+                    </button>
+                  </div>
+                </div>
+                <div className="cs-gphint">
+                  로그인 시 클라우드에 자동 저장돼요. 로그아웃·오프라인 대비
+                  백업을 권장합니다.
+                </div>
+              </div>
+            </>
+          )}
+          <input
+            ref={bkFileRef}
+            type="file"
+            accept="application/json"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              backupRestore(e.target.files && e.target.files[0])
+              e.target.value = ''
+            }}
+          />
+        </div>
 
         <div className="cs-devtoggle" title="화면 미리보기 전환">
           <button
