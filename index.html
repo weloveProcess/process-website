@@ -1387,7 +1387,7 @@
       tool.addEventListener('click',function(ev){ ev.stopPropagation(); closeAll(null); if(drawTog) drawTog.click(); liftSoon(); });
       var spm=setg.querySelector('.popmenu');
       spm.appendChild(sec('운동장'));
-      (function(){ var pr=doc.createElement('div'); pr.className='menurow'; pr.style.cssText='display:flex;gap:8px;align-items:center;'; [1,2,3].forEach(function(k){ var b=doc.createElement('button'); b.type='button'; b.className='btn'; b.textContent=k+'개'; b.style.cssText='padding:4px 12px;'; b.addEventListener('click',function(ev){ ev.stopPropagation(); try{ setPitches(doc,k); }catch(e){} }); pr.appendChild(b); }); spm.appendChild(pr); })();
+      (function(){ var pr=doc.createElement('div'); pr.className='menurow'; pr.style.cssText='display:flex;gap:6px;align-items:center;'; var b=doc.createElement('button'); b.type='button'; b.className='btn'; b.title='눌러서 운동장 개수 (1→2→3)'; var cur=(typeof psPitchN==='number'&&psPitchN)?psPitchN:1; function paint(){ b.textContent=cur+'개'; } paint(); b.addEventListener('click',function(ev){ ev.stopPropagation(); cur=cur%3+1; paint(); try{ setPitches(doc,cur); }catch(e){} }); pr.appendChild(b); spm.appendChild(pr); })();
       spm.appendChild(hrr());
       spm.appendChild(sec('지우기'));
       [13,14].forEach(function(i){if(moreRows[i]){moreRows[i].className+=" ps-wide";spm.appendChild(moreRows[i]);}});
