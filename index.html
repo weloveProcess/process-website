@@ -1423,7 +1423,7 @@
       ];
       var si=0;
       (function nextStep(){
-        if(si>=steps.length){ setTimeout(function(){ try{ view.click(); }catch(e){} }, 150); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} reveal(); }, 360); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} }, 820); setTimeout(function(){ try{ buildGroups(doc); }catch(e){} }, 700); return; }
+        if(si>=steps.length){ setTimeout(function(){ try{ view.click(); }catch(e){} }, 150); setTimeout(function(){ try{ buildGroups(doc); }catch(e){} }, 210); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} reveal(); }, 470); setTimeout(function(){ try{ recolorGrass(doc); }catch(e){} }, 820); return; }
         try{ steps[si](); }catch(e){}
         si++;
         setTimeout(nextStep, 140);
