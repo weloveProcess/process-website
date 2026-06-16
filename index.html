@@ -307,6 +307,7 @@
     var fNote=document.getElementById('fNote');
     var loading=document.getElementById('loading');
     var seg=document.getElementById('appSeg');
+    (function(){var brandEl=document.querySelector('.brand');if(!brandEl)return;brandEl.style.cursor='pointer';brandEl.setAttribute('title','처음 화면(보드)으로');brandEl.setAttribute('role','button');brandEl.addEventListener('click',function(){var bt=seg&&seg.querySelector('button[data-app="board"]');if(bt)bt.click();});})();
     var hints={board:'전술·세션을 그리고, 애니메이션·영상으로 내보내세요',
                design:'드릴 블록을 쌓아 오늘 세션을 만들고, 링크·PDF로 전달하세요',
                process:'경기일(MD) 기준 자동 주기화 · 훈련 블록에서 작전판 첨부 가능',
