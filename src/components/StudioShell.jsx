@@ -28,6 +28,14 @@ const STUDIO_LOCAL_KEYS = [
   'scout_tool_v1',
   'cs_squad_v1',
   'cs_tokshape',
+  // app.html 최신본 신규 사용자 데이터
+  'cs_drill_lib_v1',
+  'cs_drill_form_v1',
+  'cs_match_roster_v1',
+  'cs_opp_team',
+  'cs_themes_v1',
+  'cs_note_custcol',
+  'cs_board_live_v1',
 ]
 async function clearStudioLocal() {
   for (const k of STUDIO_LOCAL_KEYS) {
@@ -639,6 +647,9 @@ export default function StudioShell() {
         } catch (_) {}
       } else if (d.source === 'board' && d.type === 'focusBoard') {
         setFocus(!!d.on)
+      } else if (d.type === 'goApp' && d.app && APPS.some((a) => a.id === d.app)) {
+        // 서브앱이 다른 탭으로 이동 요청 (예: 일정 → 양식)
+        setApp(d.app)
       } else if (d.type === 'db') {
         // 항목별 저장/불러오기(배치·세션·내 구성) RPC
         handleDbRequest(d, e.source)
