@@ -242,6 +242,15 @@ export default function StudioShell() {
   const scoutRef = useRef(null)
   const noteRef = useRef(null)
   const [boardLoaded, setBoardLoaded] = useState(false)
+  // 보드(기본 앱)가 준비되면 부팅 스플래시를 페이드 제거
+  useEffect(() => {
+    if (!boardLoaded) return
+    const s = document.getElementById('cs-splash')
+    if (!s) return
+    s.style.opacity = '0'
+    const t = setTimeout(() => s.remove(), 400)
+    return () => clearTimeout(t)
+  }, [boardLoaded])
   // 출력 미리보기: null | { doc:string, rebuild:(ink)=>string }
   const [printPreview, setPrintPreview] = useState(null)
   const [printInk, setPrintInk] = useState(false)
