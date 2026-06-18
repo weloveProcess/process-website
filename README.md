@@ -10,6 +10,17 @@
 
 > 이 저장소는 **개발할 때마다 이 섹션에 내용을 누적 기록**합니다.
 
+### 2026-06-18 — 최신본(app.html) 서브앱 반영 (3-way 병합)
+- 최신 단일파일 `app.html`의 5개 서브앱(board·process·scout·note·gamemodel)을 develop에 반영.
+- **3-way 병합**(공통조상=index(5) 추출본, OURS=develop 배선판, THEIRS=app.html)으로
+  app.html의 새 기능 + develop의 클라우드 동기화 배선을 함께 보존. 충돌 7곳 수동 해결:
+  - board: `customImages`(이미지 배치), `boardSaveLive`/`restoreLiveBoard`(라이브 보드 저장),
+    `buildLines`/`buildGrid` 신규 — develop의 `dbOn`/`cloudState`/cloud 플레이·세션 함수 및
+    `setView` 핸들러·`cs_pitch`/`cs_label` 기본값·복원 유지
+  - process: app의 실행취소(undo `pushHist`/`doUndo`) + develop의 `lsSet`(IDB) 저장 병행
+  - scout: app의 `bench` 필드 + develop의 cloudSave 배선
+- 보드 기본 모습(잔디·등번호·원형) 유지. 빌드·프리뷰 검증(전 서브앱 렌더, 콘솔 오류 없음).
+
 ### 2026-06-15 — 스튜디오 다국어(i18n) 6개국어
 - 스튜디오 전체(React 셸 + board·process·scout·note·gamemodel 서브앱)를 **한·日·EN·中·ES·PT** 6개 언어로 번역.
 - **런타임 DOM 번역 엔진**(`public/studio/i18n.js`, 최종본 index(5) 이식): `DICT`(정확 일치) +

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>훈련 노트</title>
 <style>
+:focus-visible{outline:2px solid #3a6df0 !important;outline-offset:2px;border-radius:6px;}
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -25,7 +27,7 @@ body{display:flex;flex-direction:column}
 .cols input.custcol::-webkit-color-swatch{border:none;border-radius:50%}
 .cols input.custcol.on{border:2px solid var(--txt)}
 .icb{border:1px solid var(--line);background:#fff;border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:13px;color:var(--txt);display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
-.icb:disabled{opacity:.35}
+.icb:disabled{opacity:.45}
 .icb.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 11px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--txt);font-family:inherit;white-space:nowrap}
 .btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -51,6 +53,20 @@ body{display:flex;flex-direction:column}
   .bar input[type=text]{flex-basis:100%}
   .szwrap input{width:56px}
 }
+
+
+
+
+
+/*FMDARK*/
+body.fmdark{--bg:#0F141B!important;--bar:#1A212B!important;--line:#2C3744!important;--txt:#E7EBF1!important;--dim:#9AA4B3!important;--blue:#4D7DFF!important;background:#0F141B!important;color:#E7EBF1!important}
+body.fmdark .btn,body.fmdark .icb{background:#1A212B!important;border-color:#2C3744!important;color:#E7EBF1!important}
+body.fmdark .icb.on{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important}
+body.fmdark .seg{background:#141A22!important}
+body.fmdark .seg button.on{background:#2C3744!important;color:#fff!important}
+body.fmdark .cols button.on{box-shadow:0 0 0 2px #2C3744 inset!important}
+body.fmdark .btn:disabled,body.fmdark .icb:disabled{opacity:.5!important;color:#7C8696!important}
+/*ENDFMDARK*/
 </style>
 </head>
 <body>
@@ -60,7 +76,7 @@ body{display:flex;flex-direction:column}
     <option value="blank">백지</option>
     <option value="lines">줄노트</option>
     <option value="grid">모눈</option>
-    <option value="pitch">피치</option>
+    <option value="pitch">축구장</option>
   </select>
   <div class="seg" id="tools">
     <button data-t="pen" class="on">볼펜</button>
@@ -69,7 +85,7 @@ body{display:flex;flex-direction:column}
     <button data-t="text">T 텍스트</button>
     <button data-t="eraser">지우개</button>
   </div>
-  <button class="icb" id="penOnly" title="펜 전용 — 손가락 입력 무시">✍️</button>
+  <button class="icb" id="penOnly" title="펜 전용 — 손가락 입력 무시">✍</button>
   <div class="cols" id="cols"></div>
   <div class="szwrap"><input type="range" id="size" min="1" max="14" step="0.5" value="3" title="굵기"></div>
   <button class="icb" id="undoB" title="실행취소">↩</button>
@@ -81,19 +97,19 @@ body{display:flex;flex-direction:column}
     <button class="icb" id="pgNext">▶</button>
     <button class="icb" id="pgAdd" title="페이지 추가">＋</button>
   </div>
-  <button class="btn" id="pdfB">📄 PDF 열기</button>
+  <button class="btn" id="pdfB">PDF 열기</button>
   <button class="icb" id="orientB" title="가로/세로 전환">⤢</button>
   <button class="btn" id="pngB">이미지 저장</button>
-  <button class="btn" id="printB">🖨 A4 인쇄</button>
+  <button class="btn" id="printB">A4 인쇄</button>
   <input type="file" id="pdfFile" accept=".pdf,application/pdf" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none">
-  <button class="btn" id="newB">🆕 새 노트</button>
-  <button class="btn" id="libB">🗂 내 노트</button>
+  <button class="btn" id="newB">새 노트</button>
+  <button class="btn" id="libB">내 노트</button>
 </div>
 <div id="stage"><canvas id="cv"></canvas><div id="ecur"></div></div>
 
 <div class="ovl" id="libOvl">
   <div class="card">
-    <h3>🗂 내 노트</h3>
+    <h3>내 노트</h3>
     <div id="libList"></div>
     <div style="text-align:right;margin-top:10px"><button class="btn" id="libClose">닫기</button></div>
   </div>
@@ -180,15 +196,27 @@ function drawTpl(c){
   else if(t==='grid'){for(let x=0;x<=LW;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,LH);c.stroke();}
     for(let y=0;y<=LH;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(LW,y);c.stroke();}}
   else if(t==='pitch'){
-    c.strokeStyle='#CBD9CE';c.lineWidth=2.4;
-    const m=70,W2=LW-m*2,H2=LH-m*2;
+    c.strokeStyle='#AEB4BE';c.fillStyle='#AEB4BE';c.lineWidth=2;
+    const m=70,W2=LW-m*2,H2=LH-m*2,cx=LW/2,cy=LH/2;
     c.strokeRect(m,m,W2,H2);
-    c.beginPath();c.moveTo(m,LH/2);c.lineTo(LW-m,LH/2);c.stroke();
-    c.beginPath();c.arc(LW/2,LH/2,110,0,Math.PI*2);c.stroke();
-    const bw=W2*0.62,bh=170;
-    c.strokeRect(LW/2-bw/2,m,bw,bh);c.strokeRect(LW/2-bw/2,LH-m-bh,bw,bh);
-    const gw=W2*0.3,gh=64;
-    c.strokeRect(LW/2-gw/2,m,gw,gh);c.strokeRect(LW/2-gw/2,LH-m-gh,gw,gh);
+    c.beginPath();c.moveTo(m,cy);c.lineTo(LW-m,cy);c.stroke();
+    const ccR=Math.min(W2,H2)*0.13;
+    c.beginPath();c.arc(cx,cy,ccR,0,Math.PI*2);c.stroke();
+    c.beginPath();c.arc(cx,cy,3.5,0,Math.PI*2);c.fill();
+    const bw=W2*0.6,bh=H2*0.16;
+    c.strokeRect(cx-bw/2,m,bw,bh);c.strokeRect(cx-bw/2,LH-m-bh,bw,bh);
+    const gw=W2*0.3,gh=H2*0.06;
+    c.strokeRect(cx-gw/2,m,gw,gh);c.strokeRect(cx-gw/2,LH-m-gh,gw,gh);
+    const ps=bh*0.62;
+    c.beginPath();c.arc(cx,m+ps,3.5,0,Math.PI*2);c.fill();
+    c.beginPath();c.arc(cx,LH-m-ps,3.5,0,Math.PI*2);c.fill();
+    c.beginPath();c.arc(cx,m+ps,ccR,0.30*Math.PI,0.70*Math.PI);c.stroke();
+    c.beginPath();c.arc(cx,LH-m-ps,ccR,1.30*Math.PI,1.70*Math.PI);c.stroke();
+    const ca=16;
+    c.beginPath();c.arc(m,m,ca,0,0.5*Math.PI);c.stroke();
+    c.beginPath();c.arc(LW-m,m,ca,0.5*Math.PI,Math.PI);c.stroke();
+    c.beginPath();c.arc(LW-m,LH-m,ca,Math.PI,1.5*Math.PI);c.stroke();
+    c.beginPath();c.arc(m,LH-m,ca,1.5*Math.PI,2*Math.PI);c.stroke();
   }
   c.restore();
 }
@@ -415,6 +443,7 @@ function openTextEditor(l,existing){
   mkB('−',()=>{ed._size=Math.max(8,ed._size-2);applyFs();});
   mkB('＋',()=>{ed._size=Math.min(72,ed._size+2);applyFs();});
   mkB('✓',()=>{ed.blur();});
+  if(txtTarget){var __db=mkB('✕',()=>{ed.value='';ed.blur();});__db.style.color='#c4362f';__db.title='텍스트 삭제';}
   document.body.appendChild(bar);ed._bar=bar;
   document.body.appendChild(ed);txtEd=ed;
   requestAnimationFrame(()=>{auto();ed.focus();const n2=ed.value.length;ed.setSelectionRange(n2,n2);
@@ -445,9 +474,11 @@ function closeTextEditor(commit){
 cv.addEventListener('pointerdown',e=>{
   if(tool==='text'){
     e.preventDefault();
-    if(txtEd){return;} // blur가 커밋 처리
+    if(txtEd){return;}
     const l=lOf(e);
-    openTextEditor(l,findText(l));
+    const __hit=findText(l);
+    if(__hit){ window.__txtDrag={t:__hit,sx:l.x,sy:l.y,ox:__hit.x,oy:__hit.y,moved:false,pid:e.pointerId,l:l}; try{cv.setPointerCapture(e.pointerId);}catch(_){} return; }
+    openTextEditor(l,null);
     return;}
   const isPen=e.pointerType==='pen';
   if(isPen&&!penSeen){penSeen=true;if(!penOnly)setPenOnly(true,true);}
@@ -490,6 +521,8 @@ function endStroke(e){
   live=null;present();updateUI();
 }
 cv.addEventListener('pointerup',endStroke);
+cv.addEventListener('pointermove',e=>{var D=window.__txtDrag;if(!D||e.pointerId!==D.pid)return;e.preventDefault();var l=lOf(e);var dx=l.x-D.sx,dy=l.y-D.sy;if(Math.abs(dx)>3||Math.abs(dy)>3)D.moved=true;D.t.x=D.ox+dx;D.t.y=D.oy+dy;rebuildBase();present();});
+cv.addEventListener('pointerup',e=>{var D=window.__txtDrag;if(!D||e.pointerId!==D.pid)return;window.__txtDrag=null;if(D.moved){rebuildBase();present();saveSoon();try{updateUI();}catch(_){}}else{openTextEditor(D.l,D.t);}});
 cv.addEventListener('pointercancel',()=>{cancelLive();});
 const ecur=$('ecur');
 function moveEcur(e){
@@ -514,7 +547,7 @@ window.addEventListener('blur',()=>{if(live)endStroke();});
 /* ============ 펜 전용 모드 ============ */
 function setPenOnly(v,auto){
   penOnly=v;$('penOnly').classList.toggle('on',v);
-  if(v&&auto)toast('✍️ 펜 전용 모드 — 손바닥 안심하고 대세요');
+  if(v&&auto)toast('✍ 펜 전용 모드 — 손바닥 안심하고 대세요');
 }
 $('penOnly').onclick=()=>setPenOnly(!penOnly);
 
@@ -570,7 +603,7 @@ function refreshTplSel(){
   const sel=$('nTpl');const cur=sel.value;
   [...sel.querySelectorAll('option[data-cp]')].forEach(o=>o.remove());
   let addOpt=sel.querySelector('option[value="__add"]');
-  papers().forEach(pp=>{const o=document.createElement('option');o.value='paper:'+pp.id;o.textContent='📄 '+pp.name;o.setAttribute('data-cp','1');sel.insertBefore(o,addOpt);});
+  papers().forEach(pp=>{const o=document.createElement('option');o.value='paper:'+pp.id;o.textContent=''+pp.name;o.setAttribute('data-cp','1');sel.insertBefore(o,addOpt);});
   if(!addOpt){addOpt=document.createElement('option');addOpt.value='__add';addOpt.textContent='＋ 양식 추가 (이미지)';sel.appendChild(addOpt);}
   sel.value=cur&&sel.querySelector('option[value="'+cur+'"]')?cur:(note?note.tpl||'blank':'blank');}
 const pFile=document.createElement('input');pFile.type='file';pFile.accept='image/*';pFile.style.display='none';document.body.appendChild(pFile);
@@ -654,7 +687,7 @@ function load(id){
   s.cur=note.id;persist(s);
   fit();updateUI();
 }
-$('newB').onclick=()=>{save();note=blankNote();pi=0;redoStack=[];$('nTitle').value='';$('nTpl').value='blank';applyOrient();save();fit();updateUI();toast('🆕 새 노트');};
+$('newB').onclick=()=>{save();note=blankNote();pi=0;redoStack=[];$('nTitle').value='';$('nTpl').value='blank';applyOrient();save();fit();updateUI();toast('새 노트');};
 $('libB').onclick=()=>{renderLib();$('libOvl').classList.add('on');};
 $('libClose').onclick=()=>$('libOvl').classList.remove('on');
 $('libOvl').addEventListener('click',e=>{if(e.target.id==='libOvl')$('libOvl').classList.remove('on');});
