@@ -725,7 +725,6 @@ body.fmdark .btn.solid,body.fmdark .cta{background:var(--accent)!important;color
 
     <!-- SCHEDULE -->
     <section id="schedule" class="screen active">
-      <div class="top"><h2><b>일정</b></h2><div class="mini">D-28 · 다음 경기</div></div>
       <div class="toggle" id="vtoggle">
         <div data-v="month" class="on">월간</div><div data-v="week">주간</div><div data-v="day">일간</div>
       </div>
@@ -774,12 +773,20 @@ body.fmdark .btn.solid,body.fmdark .cta{background:var(--accent)!important;color
       </div>
 
       <div id="monthViewWrap" style="display:block">
-        <div class="actionbar mtop"><button class="btn solid" onclick="goForms()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-3a2 2 0 012-2h16a2 2 0 012 2v3a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
-          월간 PDF</button></div>
         <div class="weeknav"><button onclick="monthNav(-1)" aria-label="이전 달"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><span id="monthRangeLabel">월간</span><button onclick="monthNav(1)" aria-label="다음 달"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button></div>
         <div class="msum" id="monthSum"></div>
         <div class="mview" id="monthGrid"></div>
+        <div class="mixcard">
+          <div class="lbl">이번 달 훈련 배분</div>
+          <div class="stack" id="monthMixStack"></div>
+          <div class="legend" id="monthMixLegend"></div>
+        </div>
+        <div class="actionbar">
+          <button class="btn" onclick="resetMonth()">초기화</button>
+          <button class="btn" onclick="dupMonth()">이달 복제</button>
+          <button class="btn" onclick="saveTplPrompt()">내 구성 저장</button>
+          <button class="btn solid" onclick="exportPDF('month')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-3a2 2 0 012-2h16a2 2 0 012 2v3a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>월간 PDF</button>
+        </div>
       </div>
     </section>
 
@@ -2380,6 +2387,7 @@ function buildMonthGrid(g){
     cta.appendChild(btn);g.appendChild(cta);
   }
   try{renderMonthSummary();}catch(_){}
+  try{renderMonthMix();}catch(_){}
 }
 function renderMonthSummary(){
   var el=document.getElementById('monthSum'); if(!el) return;
@@ -2400,6 +2408,49 @@ function renderMonthSummary(){
     +'<span class="msum-chip" style="--cc:#8B93A3">휴식 <b>'+rest+'</b>일</span>'
     +'<span class="msum-chip" style="--cc:#C84B4B">경기 <b>'+games+'</b></span>'
     +'</div><div class="msum-load"><span class="msum-lbl">강도</span>'+ld+'</div>';
+}
+function renderMonthMix(){
+  var counts={},total=0;
+  try{monthGridDays().forEach(function(dt){ if(dt.getMonth()!==monthAnchor.m) return;
+    var n=offsetOfDate(dt), r=Math.floor(n/7), col=((n%7)+7)%7; var W=weeksMap[r]; var day=W&&W[col]; if(!day) return;
+    var t=day.board&&day.board.theme; if(t){ counts[t]=(counts[t]||0)+1; total++; } });}catch(e){}
+  var stack=document.getElementById("monthMixStack"), legend=document.getElementById("monthMixLegend");
+  if(!stack||!legend) return;
+  if(total===0){ stack.innerHTML=""; legend.innerHTML='<span class="mempty">주제를 고르면 여기 훈련 배분이 보여요</span>'; return; }
+  var segs="",legs="";
+  var keys=Object.keys(counts).sort(function(a,b){var ia=BTHEME.findIndex(function(t){return t[0]===a;}),ib=BTHEME.findIndex(function(t){return t[0]===b;});ia=ia<0?99:ia;ib=ib<0?99:ib;return ia-ib;});
+  keys.forEach(function(k){ var v=counts[k]; if(!v) return; var c=bColor("theme",k)||"#8B93A3"; var pct=Math.round(v/total*100);
+    segs+='<div class="seg" style="width:'+(v/total*100)+'%;background:'+c+'"></div>';
+    legs+='<div class="lg"><span class="cdot" style="background:'+c+'"></span>'+k+' <b>'+v+'일·'+pct+'%</b></div>'; });
+  stack.innerHTML=segs; legend.innerHTML=legs;
+}
+function resetMonth(){
+  var sheet=document.getElementById("sheet");
+  sheet.innerHTML='<button class="closex" onclick="closeSheet()">×</button>'
+    +'<h3>'+monthLabel()+' 초기화</h3>'
+    +'<div class="sub">이 달의 모든 훈련·주제·경기를 지우고 빈 달로 되돌립니다.</div>'
+    +'<button class="del" style="margin-top:8px" onclick="doResetMonth()">초기화</button>'
+    +'<button class="savebtn" style="margin-top:10px;background:var(--surface-2);color:var(--text)" onclick="closeSheet()">취소</button>';
+  document.getElementById("scrim").classList.add("show");
+}
+function doResetMonth(){
+  try{monthGridDays().forEach(function(dt){ if(dt.getMonth()!==monthAnchor.m) return;
+    var n=offsetOfDate(dt), r=Math.floor(n/7), col=((n%7)+7)%7; if(!weeksMap[r]) weeksMap[r]=blankWeek();
+    var bw=blankWeek(); weeksMap[r][col]=bw[col]; });}catch(e){}
+  closeSheet(); try{recomputeMD();}catch(_){} try{syncViews();}catch(_){} try{save();}catch(_){}
+}
+function dupMonth(){
+  var src=[];
+  try{monthGridDays().forEach(function(dt){ if(dt.getMonth()!==monthAnchor.m) return;
+    var n=offsetOfDate(dt), r=Math.floor(n/7), col=((n%7)+7)%7; var W=weeksMap[r]; var day=W&&W[col];
+    var has=day&&(day.match||(day.trainings&&day.trainings.length)||(day.board&&(day.board.theme||day.board.sched)));
+    if(has) src.push({date:new Date(dt), day:JSON.parse(JSON.stringify(day))}); });}catch(e){}
+  if(!src.length){ try{toast&&toast("복제할 내용이 없어요");}catch(_){} return; }
+  src.forEach(function(o){ var nd=new Date(o.date.getFullYear(), o.date.getMonth()+1, o.date.getDate());
+    var n=offsetOfDate(nd), r=Math.floor(n/7), col=((n%7)+7)%7; if(!weeksMap[r]) weeksMap[r]=blankWeek();
+    var copy=JSON.parse(JSON.stringify(o.day)); copy.d=weeksMap[r][col].d; copy.n=weeksMap[r][col].n; weeksMap[r][col]=copy; });
+  monthAnchor.m+=1; while(monthAnchor.m>11){monthAnchor.m-=12;monthAnchor.y++;}
+  try{recomputeMD();}catch(_){} try{renderMonth();}catch(_){} try{renderMonthMix();}catch(_){} try{save();}catch(_){}
 }
 function renderMonth(dir){
   const g=document.getElementById('monthGrid'); if(!g) return;

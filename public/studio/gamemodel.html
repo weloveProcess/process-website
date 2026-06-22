@@ -162,10 +162,10 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
 .apphd-name .wm{font-weight:300;letter-spacing:.04em;}
 .apphd-name .wm b{font-weight:800;}
 .apphd-seg{display:flex;background:#F1F2F4;border:1px solid #E3E5E9;border-radius:11px;
-  padding:3px;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex:0 1 auto;}
+  padding:3px;gap:2px;margin-left:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex:0 1 auto;}
 .apphd-seg::-webkit-scrollbar{display:none;}
-.apphd-seg button{border:0;background:transparent;color:#5C6068;font-weight:600;font-size:13px;
-  letter-spacing:-.2px;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.15s;
+.apphd-seg button{border:0;background:transparent;color:#5C6068;font-weight:600;font-size:14px;
+  letter-spacing:-.2px;padding:8px 16px;border-radius:9px;cursor:pointer;transition:.15s;
   white-space:nowrap;font-family:inherit;flex:0 0 auto;}
 .apphd-seg button.on{background:#fff;color:#16181C;box-shadow:0 1px 2px rgba(16,24,40,.08),0 2px 5px rgba(16,24,40,.06);}
 .apphd-seg button:not(.on):hover{color:#16181C;}
@@ -183,10 +183,10 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
   <div class="stage" id="stage">
 
     <div class="apphd">
-      <div class="apphd-name">팀<span class="sub">구성 · 스카우트</span></div>
+      
       <div class="apphd-seg" id="gmNav">
         <button data-v="team">팀 구성</button>
-        <button data-v="players">선수</button>
+        <button data-v="players" style="display:none">선수</button>
         <button data-v="report">스카우트</button>
         <button data-v="gamemodel" class="on">게임모델</button>
         <button data-v="positions">기준 설정</button>
@@ -264,14 +264,28 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
     momentsEl.innerHTML='';
     model.moments.forEach(function(m){
       var sec=document.createElement('div');
-      sec.className='moment m-'+m.key+(model.open[m.key]?' open':'');
+      sec.className='moment m-'+(m.cat||m.key)+(model.open[m.key]?' open':'');
+      var CATS=['ao','do','dt','at'];
 
       var head=document.createElement('div');
       head.className='mhead';
-      head.innerHTML='<span class="mdot"></span><span class="mtitle"></span>'
-        +'<span class="mtag"></span><span class="chev">▸</span>';
-      head.querySelector('.mtitle').textContent=m.name;
-      head.querySelector('.mtag').textContent=m.tag;
+      function _ctl(txt,title){var b=document.createElement('button');b.textContent=txt;b.title=title;b.style.cssText='border:0;background:transparent;color:var(--text-3);font-size:13px;cursor:pointer;padding:3px 5px;line-height:1;border-radius:6px';b.addEventListener('click',function(e){e.stopPropagation();});return b;}
+      var dot=document.createElement('button'); dot.className='mdot'; dot.title='색/구분 바꾸기'; dot.style.cssText='border:0;padding:0;cursor:pointer';
+      dot.addEventListener('click',function(e){e.stopPropagation(); var c=m.cat||m.key; var i=CATS.indexOf(c); m.cat=CATS[(i+1)%CATS.length]; save(); render();});
+      var nm=document.createElement('input'); nm.className='mtitle'; nm.value=m.name||''; nm.placeholder='국면 이름';
+      nm.style.cssText='border:0;outline:0;background:transparent;font-family:inherit;font-size:14.5px;font-weight:700;letter-spacing:-.1px;color:var(--text);min-width:50px';
+      nm.addEventListener('click',function(e){e.stopPropagation();});
+      nm.addEventListener('input',function(){m.name=nm.value;save();});
+      var tag=document.createElement('input'); tag.className='mtag'; tag.value=m.tag||''; tag.placeholder='태그';
+      tag.size=Math.max(4,(m.tag||'').length||4);
+      tag.style.cssText='border:0;outline:0;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-align:center';
+      tag.addEventListener('click',function(e){e.stopPropagation();});
+      tag.addEventListener('input',function(){m.tag=tag.value;tag.size=Math.max(4,tag.value.length||4);save();});
+      var up=_ctl('▲','위로'); up.addEventListener('click',function(){var i=model.moments.indexOf(m);if(i>0){model.moments.splice(i,1);model.moments.splice(i-1,0,m);save();render();}});
+      var dn=_ctl('▼','아래로'); dn.addEventListener('click',function(){var i=model.moments.indexOf(m);if(i<model.moments.length-1){model.moments.splice(i,1);model.moments.splice(i+1,0,m);save();render();}});
+      var mdel=_ctl('✕','국면 삭제'); mdel.addEventListener('click',function(){ if(!confirm('이 국면 전체를 삭제할까요?'))return; var i=model.moments.indexOf(m); if(i>-1)model.moments.splice(i,1); try{delete model.open[m.key];}catch(_){} save(); render(); });
+      var chev=document.createElement('span'); chev.className='chev'; chev.textContent='▸';
+      head.appendChild(dot); head.appendChild(nm); head.appendChild(tag); head.appendChild(up); head.appendChild(dn); head.appendChild(mdel); head.appendChild(chev);
       head.addEventListener('click',function(){
         model.open[m.key]=!model.open[m.key]; sec.classList.toggle('open'); save();
         if(model.open[m.key]) [].forEach.call(sec.querySelectorAll('textarea'),autosize);
@@ -284,7 +298,7 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
       m.phases.forEach(function(ph){ body.appendChild(phaseCard(m,ph)); });
 
       var addp=document.createElement('button');
-      addp.className='addphase'; addp.textContent='＋ 국면 추가';
+      addp.className='addphase'; addp.textContent='＋ 단계 추가';
       addp.addEventListener('click',function(){
         m.phases.push({id:'p'+Math.random().toString(36).slice(2,8),name:'새 국면',principles:[''],snap:null});
         save(); render();
@@ -294,6 +308,12 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
       sec.appendChild(body);
       momentsEl.appendChild(sec);
     });
+    var addm=document.createElement('button'); addm.className='addphase'; addm.style.cssText='margin:16px 22px 0;display:block;width:calc(100% - 44px)'; addm.textContent='＋ 국면 추가';
+    addm.addEventListener('click',function(){ var k='m'+Math.random().toString(36).slice(2,8); model.moments.push({key:k,cat:'ao',name:'새 국면',tag:'',phases:[{id:'p'+Math.random().toString(36).slice(2,8),name:'새 단계',principles:[''],snap:null}]}); model.open[k]=true; save(); render(); });
+    momentsEl.appendChild(addm);
+    var rst=document.createElement('button'); rst.className='addphase'; rst.style.cssText='margin:8px 22px 0;display:block;width:calc(100% - 44px);border-style:solid;opacity:.65'; rst.textContent='↺ 기본 템플릿으로 초기화';
+    rst.addEventListener('click',function(){ if(!confirm('현재 내용을 지우고 기본 4국면 템플릿으로 되돌릴까요?'))return; var id=model.identity; model=seed(); model.identity=id; save(); render(); });
+    momentsEl.appendChild(rst);
     // size all textareas after insert
     requestAnimationFrame(function(){
       [].forEach.call(document.querySelectorAll('.prow textarea'),autosize);
@@ -308,12 +328,16 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
     var head=document.createElement('div'); head.className='phead';
     var nm=document.createElement('input'); nm.className='pname'; nm.value=ph.name;
     nm.addEventListener('input',function(){ph.name=nm.value;save();});
-    var del=document.createElement('button'); del.className='pdel'; del.innerHTML='✕'; del.title='국면 삭제';
+    var pup=document.createElement('button'); pup.className='pdel'; pup.innerHTML='▲'; pup.title='위로';
+    pup.addEventListener('click',function(){var i=m.phases.indexOf(ph);if(i>0){m.phases.splice(i,1);m.phases.splice(i-1,0,ph);save();render();}});
+    var pdn=document.createElement('button'); pdn.className='pdel'; pdn.innerHTML='▼'; pdn.title='아래로';
+    pdn.addEventListener('click',function(){var i=m.phases.indexOf(ph);if(i<m.phases.length-1){m.phases.splice(i,1);m.phases.splice(i+1,0,ph);save();render();}});
+    var del=document.createElement('button'); del.className='pdel'; del.innerHTML='✕'; del.title='단계 삭제';
     del.addEventListener('click',function(){
-      if(!confirm('이 국면을 삭제할까요?')) return;
+      if(!confirm('이 단계를 삭제할까요?')) return;
       var i=m.phases.indexOf(ph); if(i>-1)m.phases.splice(i,1); save(); render();
     });
-    head.appendChild(nm); head.appendChild(del); card.appendChild(head);
+    head.appendChild(nm); head.appendChild(pup); head.appendChild(pdn); head.appendChild(del); card.appendChild(head);
 
     // principles
     var princ=document.createElement('div'); princ.className='princ';
@@ -327,6 +351,30 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
     });
     card.appendChild(addpr);
 
+    // 트리거 (신호) 체크리스트 — 이 국면에서 행동을 작동시키는 신호 (예: 백패스·나쁜 첫터치·터치라인 가두기)
+    ph.triggers = ph.triggers || [];
+    var trgWrap=document.createElement('div'); trgWrap.style.cssText='margin-top:11px';
+    var trgHd=document.createElement('div'); trgHd.textContent='트리거 (신호)'; trgHd.style.cssText='font-size:11px;font-weight:700;opacity:.5;letter-spacing:.02em;margin-bottom:6px';
+    trgWrap.appendChild(trgHd);
+    var trgList=document.createElement('div'); trgList.style.cssText='display:flex;flex-direction:column;gap:6px';
+    function trgRow(i){
+      var r=document.createElement('div'); r.style.cssText='display:flex;align-items:center;gap:8px';
+      var c=document.createElement('input'); c.type='checkbox'; c.checked=!!ph.triggers[i].on; c.style.cssText='width:16px;height:16px;flex:0 0 auto;accent-color:#ee2222;cursor:pointer';
+      c.addEventListener('change',function(){ ph.triggers[i].on=c.checked; save(); });
+      var t=document.createElement('input'); t.type='text'; t.value=ph.triggers[i].text||''; t.placeholder='작동 신호를 적어요 (예: 상대 백패스)';
+      t.style.cssText='flex:1;border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:var(--surface);color:inherit;font-size:13px';
+      t.addEventListener('input',function(){ ph.triggers[i].text=t.value; save(); });
+      var x=document.createElement('button'); x.className='pdel'; x.innerHTML='✕'; x.title='트리거 삭제';
+      x.addEventListener('click',function(){ ph.triggers.splice(i,1); save(); render(); });
+      r.appendChild(c); r.appendChild(t); r.appendChild(x); return r;
+    }
+    ph.triggers.forEach(function(_,i){ trgList.appendChild(trgRow(i)); });
+    trgWrap.appendChild(trgList);
+    var addt=document.createElement('button'); addt.className='addprinc'; addt.textContent='＋ 트리거';
+    addt.addEventListener('click',function(){ ph.triggers.push({text:'',on:false}); save(); trgList.appendChild(trgRow(ph.triggers.length-1)); });
+    trgWrap.appendChild(addt);
+    card.appendChild(trgWrap);
+
     // snapshot
     var snapwrap=document.createElement('div'); snapwrap.className='snapwrap';
     function paintSnap(){
@@ -336,6 +384,7 @@ body.fmdark{--bg:#0F141B!important;--frame:#1A212B!important;--surface:#1A212B!i
         t.innerHTML='<img src="'+ph.snap.thumb+'" alt="작전판"><button class="rm" title="첨부 제거">✕</button>';
         t.querySelector('.rm').addEventListener('click',function(){ ph.snap=null; save(); paintSnap(); });
         snapwrap.appendChild(t);
+        if(ph.snap && ph.snap.snap){ var vb=document.createElement('button'); vb.className='attachbtn'; vb.innerHTML='▶ 보기'; vb.title='첨부한 작전판 열기'; vb.addEventListener('click',function(){ try{ parent.postMessage({source:'gamemodel',type:'openBoard',snap:ph.snap.snap,view:true},'*'); }catch(e){} }); snapwrap.appendChild(vb); }
       }
       var ab=document.createElement('button'); ab.className='attachbtn';
       ab.innerHTML=(ph.snap&&ph.snap.thumb)?'⟳ 작전판 다시 첨부':'＋ 작전판 첨부';

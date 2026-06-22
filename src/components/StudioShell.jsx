@@ -133,18 +133,95 @@ function unzips(b64) {
     .then((buf) => new TextDecoder().decode(buf))
 }
 
-// 공유 링크 수신 뷰어 (작전판/세션/주간 일정)
-function ShareViewer({ obj, onClose, onImport }) {
+// 공유 스냅(렌더 SVG 없음) → 보드 iframe 에 snapToThumb 요청해 다이어그램 렌더
+function SnapThumb({ snap, boardRef }) {
+  const [svg, setSvg] = useState(null)
+  useEffect(() => {
+    if (!snap) { setSvg(''); return }
+    const id = 't' + Math.random().toString(36).slice(2)
+    let tries = 0
+    let done = false
+    function onM(e) {
+      const d = e.data || {}
+      if (d.type === 'snapToThumbResult' && d.id === id) {
+        done = true
+        window.removeEventListener('message', onM)
+        setSvg(d.svg || '')
+      }
+    }
+    window.addEventListener('message', onM)
+    function req() {
+      if (done) return
+      const fr = boardRef?.current
+      if (tries > 14 || !fr || !fr.contentWindow) {
+        window.removeEventListener('message', onM)
+        setSvg('')
+        return
+      }
+      tries++
+      try {
+        fr.contentWindow.postMessage({ type: 'snapToThumb', id, snap }, '*')
+      } catch (_) {}
+      setTimeout(() => { if (!done) req() }, 400)
+    }
+    req()
+    return () => window.removeEventListener('message', onM)
+  }, [snap, boardRef])
+  const box = { border: '1px solid #e3e6eb', borderRadius: '10px', overflow: 'hidden', margin: '0 0 16px', background: '#fff', minHeight: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa6b2', fontSize: '12px', fontWeight: 700 }
+  if (svg === null) return <div style={box}>다이어그램 불러오는 중…</div>
+  if (!svg) return <div style={box}>(다이어그램 없음)</div>
+  return (
+    <div
+      style={{ border: '1px solid #e3e6eb', borderRadius: '10px', overflow: 'hidden', margin: '0 0 16px', background: '#fff' }}
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  )
+}
+
+// 공유 링크 수신 뷰어 (작전판/세션/주간 일정/드릴)
+function ShareViewer({ obj, boardRef, onClose, onImport, onImportDrills }) {
   const title =
-    (obj.kind === 'board'
-      ? '공유된 작전판'
-      : obj.kind === 'session'
-        ? '공유된 훈련 세션'
-        : '공유된 주간 일정') + (obj.title ? ' · ' + obj.title : '')
+    (obj.kind === 'drill'
+      ? obj.name || '드릴'
+      : obj.kind === 'board'
+        ? '공유된 작전판'
+        : obj.kind === 'session'
+          ? '공유된 훈련 세션'
+          : '공유된 주간 일정') +
+    (obj.kind !== 'drill' && obj.title ? ' · ' + obj.title : '')
   return (
     <div className="shview" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div className="shp">
         <h3>{title}</h3>
+        {obj.kind === 'drill' && (
+          <>
+            <div style={{ fontSize: '12.5px', color: '#7d828c', margin: '-4px 0 14px' }}>
+              {obj.focus && <b style={{ color: '#16181C' }}>{obj.focus}</b>}
+              {(obj.focus ? ' · ' : '') + 'RPE ' + (obj.rpe || 5) + ' · ' + (obj.sets > 1 && obj.per ? obj.per + '분×' + obj.sets + '세트' : (obj.minutes || 0) + '분')}
+            </div>
+            {obj.thumb ? (
+              <div
+                style={{ border: '1px solid #e3e6eb', borderRadius: '10px', overflow: 'hidden', margin: '0 0 16px', background: '#fff' }}
+                dangerouslySetInnerHTML={{ __html: obj.thumb }}
+              />
+            ) : obj.snap ? (
+              <SnapThumb snap={obj.snap} boardRef={boardRef} />
+            ) : null}
+            {(obj.secs || []).map((sc, i) => (
+              <div key={i} style={{ margin: '0 0 13px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#9097A0', letterSpacing: '.02em', marginBottom: '3px' }}>{sc[0]}</div>
+                <div style={{ fontSize: '13px', color: 'var(--txt)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{sc[1]}</div>
+              </div>
+            ))}
+            {obj.scenes && obj.scenes.length
+              ? obj.scenes.map((sv, i) => (
+                  <div key={'sc' + i} style={{ border: '1px solid #e3e6eb', borderRadius: '10px', overflow: 'hidden', margin: '0 0 16px', background: '#fff' }} dangerouslySetInnerHTML={{ __html: sv }} />
+                ))
+              : (obj.sceneSnaps || []).map((sn, i) => (
+                  <SnapThumb key={'ss' + i} snap={sn} boardRef={boardRef} />
+                ))}
+          </>
+        )}
         {obj.kind === 'board' && obj.thumb && (
           <img
             alt="작전판"
@@ -222,6 +299,31 @@ function ShareViewer({ obj, onClose, onImport }) {
           {obj.kind === 'board' && obj.snap && (
             <button className="pri" onClick={() => onImport(obj.snap)}>
               내 작전판으로 불러오기
+            </button>
+          )}
+          {obj.kind === 'session' && obj.drills && obj.drills.length > 0 && (
+            <button className="pri" onClick={() => onImportDrills(obj.drills)}>
+              내 보관함에 담기
+            </button>
+          )}
+          {obj.kind === 'drill' && (
+            <button
+              className="pri"
+              onClick={() =>
+                onImportDrills([
+                  {
+                    name: obj.name,
+                    minutes: obj.minutes,
+                    per: obj.minutes,
+                    sets: obj.sets,
+                    rpe: obj.rpe,
+                    overview: (obj.secs || []).map((s) => s[0] + ': ' + s[1]).join('\n'),
+                    snap: obj.snap,
+                  },
+                ])
+              }
+            >
+              내 보관함에 담기
             </button>
           )}
           <button onClick={onClose}>닫기</button>
@@ -411,6 +513,85 @@ export default function StudioShell() {
     }
     setApp('board')
     closeShare()
+  }
+  // 공유 뷰어: 세션/드릴을 내 보관함(훈련 디자인)에 담기
+  function importDrills(drills) {
+    const win = boardRef.current?.contentWindow
+    if (win && typeof win.__importSessionDrills === 'function') {
+      try {
+        win.__importSessionDrills(drills)
+      } catch (_) {}
+    }
+    setApp('design')
+    closeShare()
+  }
+  // 드릴/보드 공유: 보드가 보낸 payload 를 용량 단계별로 압축해 링크 생성(app.html 신기능)
+  function shareDataLink(pl) {
+    const cl = (o) => JSON.parse(JSON.stringify(o))
+    const tiers = []
+    if (pl.kind === 'drill') {
+      tiers.push({ obj: pl })
+      const a2 = cl(pl)
+      a2.sceneSnaps = []
+      tiers.push({ obj: a2 })
+      const a3 = cl(pl)
+      a3.sceneSnaps = []
+      delete a3.snap
+      tiers.push({ obj: a3, note: '(용량이 커서 다이어그램은 제외했어요)' })
+    } else if (pl.kind === 'board') {
+      if (!pl.snap) {
+        alert('이 항목은 링크 공유를 지원하지 않아요 — 파일 내보내기(JSON)를 사용하세요')
+        return
+      }
+      const strip = (sn) => {
+        try {
+          const c = cl(sn)
+          c.customImages = []
+          if (c.players)
+            c.players = c.players.map((p) => {
+              if (p && p.team === 'img') {
+                p = cl(p)
+                p.team = 'blue'
+              }
+              return p
+            })
+          return c
+        } catch (_) {
+          return sn
+        }
+      }
+      tiers.push({ obj: pl })
+      const b2 = cl(pl)
+      delete b2.thumb
+      tiers.push({ obj: b2 })
+      const b3 = cl(pl)
+      delete b3.thumb
+      b3.snap = strip(pl.snap)
+      tiers.push({ obj: b3, note: '(용량이 커서 사진은 제외했어요)' })
+    } else {
+      tiers.push({ obj: pl })
+    }
+    const copy = (url, note) => {
+      const msg = '공유 링크가 복사됐어요 ✓ 붙여넣어 전달하세요' + (note ? '\n' + note : '')
+      if (navigator.clipboard?.writeText)
+        navigator.clipboard.writeText(url).then(() => alert(msg), () => prompt('아래 링크를 복사해 전달하세요', url))
+      else prompt('아래 링크를 복사해 전달하세요', url)
+    }
+    const go = (i) => {
+      if (i >= tiers.length) {
+        alert('내용이 너무 커서 링크로 만들 수 없어요 — 파일 내보내기(JSON)를 사용하세요')
+        return
+      }
+      zips(JSON.stringify(tiers[i].obj)).then((z) => {
+        const url = location.href.split('#')[0] + '#share=' + z
+        if (url.length > 60000) {
+          go(i + 1)
+          return
+        }
+        copy(url, tiers[i].note)
+      })
+    }
+    go(0)
   }
 
   // 클라우드 자동저장 상태 표시: null | 'saving' | 'saved' | 'error' | 'offline'
@@ -659,6 +840,9 @@ export default function StudioShell() {
       } else if (d.type === 'goApp' && d.app && APPS.some((a) => a.id === d.app)) {
         // 서브앱이 다른 탭으로 이동 요청 (예: 일정 → 양식)
         setApp(d.app)
+      } else if (d.source === 'board' && d.type === 'shareData' && d.payload) {
+        // 보드 라이브러리의 드릴/보드 공유 → 용량 단계별 링크 생성
+        shareDataLink(d.payload)
       } else if (d.type === 'db') {
         // 항목별 저장/불러오기(배치·세션·내 구성) RPC
         handleDbRequest(d, e.source)
@@ -1117,7 +1301,13 @@ export default function StudioShell() {
       )}
 
       {shareObj && (
-        <ShareViewer obj={shareObj} onClose={closeShare} onImport={importShare} />
+        <ShareViewer
+          obj={shareObj}
+          boardRef={boardRef}
+          onClose={closeShare}
+          onImport={importShare}
+          onImportDrills={importDrills}
+        />
       )}
     </div>
   )
