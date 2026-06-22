@@ -22,6 +22,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;600;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+<!-- 부팅 스플래시: React 마운트 전부터 즉시 표시, 보드 준비되면 셸이 페이드 제거 -->
+<style>
+  #cs-splash{position:fixed;inset:0;z-index:9999;background:#ECEDF0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:18px;transition:opacity .35s ease;font-family:'Montserrat','Noto Sans KR',-apple-system,sans-serif;}
+  #cs-splash .csl-brand{font-family:'Jost','Montserrat',sans-serif;font-weight:300;font-size:22px;letter-spacing:.04em;color:#16181C;}
+  #cs-splash .csl-brand b{font-weight:700;}
+  #cs-splash .csl-spin{width:26px;height:26px;border-radius:50%;border:3px solid #d6d9e0;border-top-color:#3a6df0;animation:csl-rot .7s linear infinite;}
+  #cs-splash .csl-txt{font-size:12.5px;font-weight:600;color:#5C6068;letter-spacing:.02em;}
+  @keyframes csl-rot{to{transform:rotate(360deg);}}
+</style>
+<div id="cs-splash">
+  <div class="csl-brand"><b>PRO</b>CESS <b>STUDIO</b></div>
+  <div class="csl-spin"></div>
+  <div class="csl-txt">불러오는 중…</div>
+</div>
+<script>
+  // 안전장치: 8초 내 셸이 못 지우면 강제 제거(흰 화면 갇힘 방지)
+  setTimeout(function(){var s=document.getElementById('cs-splash');if(s){s.style.opacity='0';setTimeout(function(){s&&s.remove();},400);}},8000);
+</script>
 <div id="root"></div>
 <!-- 셸(부모)도 백업 등에서 IndexedDB(window.storage)에 접근 -->
 <script src="/studio/idb-store.js"></script>

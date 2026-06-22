@@ -141,9 +141,10 @@
 
 /* ===== 팀 구성 ===== */
 .tm-split{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;}
+@media(min-width:760px){.tm-split{flex-wrap:nowrap;}.tm-split>.posfield{position:sticky;top:58px;align-self:flex-start;z-index:1;}}
 .tm-split #teamPitch{flex:1 1 300px;min-width:240px;max-width:360px;}
 .tm-split .tm-roster{flex:1 1 320px;min-width:0;max-width:560px;}
-.tm-row{display:flex;gap:6px;row-gap:5px;align-items:center;padding:4px 0;flex-wrap:wrap;}
+.tm-row{display:flex;gap:6px;row-gap:5px;align-items:center;padding:3px 0;flex-wrap:wrap;}
 .tm-row>*{min-width:0;}
 .tm-row .inp{height:38px;}
 .tm-row .t-num{flex:0 0 40px;}
@@ -162,7 +163,7 @@ body.fmdark .tm-tag.tm-st{background:#2f4d8a;color:#fff;}
 .tm-sechd{font-size:12px;font-weight:800;color:var(--dim);margin:0 2px 6px;display:flex;align-items:center;gap:6px;}
 .tm-sechd .tm-sectt{color:var(--txt);font-size:13px;}
 .tm-sechd .tm-secn{color:var(--blue);}
-.tm-list{display:flex;flex-direction:column;gap:5px;min-height:34px;border-radius:10px;padding:3px;transition:background .15s;}
+.tm-list{display:flex;flex-direction:column;gap:4px;min-height:30px;border-radius:10px;padding:3px;transition:background .15s;}
 .tm-sec.tm-over .tm-list{background:rgba(58,109,240,.12);outline:2px dashed var(--blue);outline-offset:-2px;}
 .tm-grip{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;color:var(--dim);cursor:grab;touch-action:none;width:20px;}
 .tm-grip:active{cursor:grabbing;}
@@ -170,7 +171,7 @@ body.fmdark .tm-tag.tm-st{background:#2f4d8a;color:#fff;}
 .tm-ghost{background:var(--bar);border:1px solid var(--blue);box-shadow:0 10px 26px rgba(0,0,0,.32);opacity:.97;}
 body.fmdark .tm-ghost{background:#1A212B;}
 .tm-drop-empty{font-size:11.5px;color:var(--dim);text-align:center;padding:11px;border:1px dashed var(--line);border-radius:9px;}
-.tm-poshd{display:flex;align-items:center;gap:8px;margin:13px 2px 6px;}
+.tm-poshd{display:flex;align-items:center;gap:8px;margin:8px 2px 4px;}
 .tm-poshd-n{font-size:13px;font-weight:800;color:var(--txt);background:var(--bar2);padding:4px 11px;border-radius:7px;letter-spacing:.3px;}
 .tm-poshd-add{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--blue);background:none;border:1px solid var(--line);border-radius:7px;padding:5px 10px;cursor:pointer;font-family:inherit;}
 .tm-poshd-add:active{transform:scale(.95);}
@@ -260,10 +261,10 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
 .apphd-name .wm{font-weight:300;letter-spacing:.04em;}
 .apphd-name .wm b{font-weight:800;}
 .apphd-seg{display:flex;background:#F1F2F4;border:1px solid #E3E5E9;border-radius:11px;
-  padding:3px;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex:0 1 auto;}
+  padding:3px;gap:2px;margin-left:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex:0 1 auto;}
 .apphd-seg::-webkit-scrollbar{display:none;}
-.apphd-seg button{border:0;background:transparent;color:#5C6068;font-weight:600;font-size:13px;
-  letter-spacing:-.2px;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.15s;
+.apphd-seg button{border:0;background:transparent;color:#5C6068;font-weight:600;font-size:14px;
+  letter-spacing:-.2px;padding:8px 16px;border-radius:9px;cursor:pointer;transition:.15s;
   white-space:nowrap;font-family:inherit;flex:0 0 auto;}
 .apphd-seg button.on{background:#fff;color:#16181C;box-shadow:0 1px 2px rgba(16,24,40,.08),0 2px 5px rgba(16,24,40,.06);}
 .apphd-seg button:not(.on):hover{color:#16181C;}
@@ -273,7 +274,7 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
   padding:0 13px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:.15s;}
 .apphd-iconbtn:hover{background:#fff;}.apphd-iconbtn:active{transform:scale(.96);}
-@media (max-width:520px){.apphd{gap:9px;padding:8px 12px;}.apphd-name .sub{display:none;}}
+@media (max-width:520px){.apphd{gap:9px;padding:8px 12px;}.apphd-seg{flex:1 1 100%;}.apphd-seg button{flex:1 1 0;text-align:center;padding:8px 6px;}}
 @media print{.apphd{display:none!important;}}
 </style>
 <style>
@@ -451,12 +452,12 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
 </head>
 <body>
   <div class="apphd">
-    <div class="apphd-name">팀<span class="sub">구성 · 스카우트</span></div>
     <div class="apphd-seg" id="nav">
       <button data-v="team" class="on">팀 구성</button>
       <button data-v="players">선수</button>
       <button data-v="report">스카우트</button>
       <button data-v="gamemodel">게임모델</button>
+      <button data-v="positions">기준 설정</button>
     </div>
   </div>
 
@@ -464,7 +465,7 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
     <!-- ===== 보고서 ===== -->
     <section class="view" id="teamView">
       <div class="card">
-        <div class="tm-head"><div class="tm-head-top"><span class="t">우리 팀 구성</span><span class="muted" id="teamCount" style="font-size:12px"></span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px"><button class="btn primary" id="tmAdd">＋ 선수 추가</button><button class="btn sm" id="rosterBtn" title="선수단 명단 출력" style="height:34px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px;margin-right:3px"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>명단</button></span></div><div class="tm-head-set"><label class="tm-set-it">포메이션<select class="inp" id="tmForm" style="width:auto;min-width:96px;height:32px;font-weight:700;font-size:13px"><optgroup label="백4"><option value="442">4-4-2</option><option value="4231">4-2-3-1</option><option value="433">4-3-3</option><option value="4312">4-3-1-2</option><option value="4321">4-3-2-1</option></optgroup><optgroup label="백3"><option value="3142">3-1-4-2</option><option value="3412">3-4-1-2</option><option value="3421">3-4-2-1</option></optgroup></select></label><label class="tm-set-it">유니폼<span class="kit-sw"><input type="color" id="kitMain" title="유니폼 색"></span></label><label class="tm-set-it">GK<span class="kit-sw"><input type="color" id="kitGk" title="GK 색"></span></label><button class="btn sm" id="shapeTog" title="선수 알 모양 (유니폼/원형)" style="height:32px;min-width:42px">셔츠</button><button class="btn sm" id="tmPosEditBtn" title="포지션을 자유롭게 끌어 옮기기" style="height:32px">⤧ 배치 이동</button><button class="btn sm" id="tmPosResetBtn" title="이 포메이션 배치를 기본값으로" style="height:32px;display:none">배치 초기화</button></div></div>
+        <div class="tm-head"><div class="tm-head-top"><span class="t">우리 팀 구성</span><span class="muted" id="teamCount" style="font-size:12px"></span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px"><button class="btn primary" id="tmAdd">＋ 선수 추가</button><button class="btn sm" id="tmAddBulk" title="이름을 줄바꿈으로 한 번에 등록 — 엑셀·메모 복사 붙여넣기" style="height:34px">명단 붙여넣기</button><button class="btn sm" id="rosterBtn" title="선수단 명단 출력" style="height:34px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px;margin-right:3px"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>명단</button></span></div><div class="tm-head-set"><label class="tm-set-it">포메이션<select class="inp" id="tmForm" style="width:auto;min-width:96px;height:32px;font-weight:700;font-size:13px"><optgroup label="백4"><option value="442">4-4-2</option><option value="4231">4-2-3-1</option><option value="433">4-3-3</option><option value="4312">4-3-1-2</option><option value="4321">4-3-2-1</option></optgroup><optgroup label="백3"><option value="3142">3-1-4-2</option><option value="3412">3-4-1-2</option><option value="3421">3-4-2-1</option></optgroup></select></label><label class="tm-set-it">유니폼<span class="kit-sw"><input type="color" id="kitMain" title="유니폼 색"></span></label><label class="tm-set-it">GK<span class="kit-sw"><input type="color" id="kitGk" title="GK 색"></span></label><button class="btn sm" id="shapeTog" title="선수 알 모양 (유니폼/원형)" style="height:32px;min-width:42px">셔츠</button><button class="btn sm" id="tmPosEditBtn" title="포지션을 자유롭게 끌어 옮기기" style="height:32px">⤧ 배치 이동</button><button class="btn sm" id="tmPosResetBtn" title="이 포메이션 배치를 기본값으로" style="height:32px;display:none">배치 초기화</button></div></div>
         <div id="grpChips" style="display:none;gap:6px;flex-wrap:wrap;margin:2px 0 10px"></div>
         <datalist id="grpList"></datalist>
         <div class="tm-split">
@@ -476,10 +477,11 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
           </div>
         </div>
       </div>
-      <button type="button" id="critToggle" onclick="toggleCrit()" style="display:flex;align-items:center;gap:8px;width:100%;margin:22px 0 0;padding:14px 2px 14px;border:0;border-top:2px solid var(--line,#E3E5E9);background:transparent;font-family:inherit;font-weight:800;font-size:16px;color:var(--txt,#16181C);cursor:pointer;text-align:left"><span id="critChev" style="display:inline-block;color:var(--dim,#5C6068)">▸</span>기준 설정<span style="flex:1"></span><span style="font-size:11.5px;font-weight:600;color:var(--dim,#5C6068)">포지션·포메이션·속성</span></button>
-      <div id="critWrap" style="display:none">
-      <p class="lead" style="margin:2px 2px 12px;font-size:12.5px;color:#5C6068">포지션별 목표 레벨·포메이션·평가 속성을 여기서 설정합니다. 이 기준이 선수 평가와 비교의 바탕이 돼요.</p>
-    <section id="positionsView">
+      
+
+    </section>
+
+    <section class="view" id="positionsView">
       <p class="lead">포지션마다 <b>원하는 목표 레벨(1~5)</b>을 속성별로 설정합니다. 이 목표가 비교의 기준이 됩니다.</p>
       <div class="card">
         <div class="card-h"><span class="t">포지션</span><span class="sp"></span>
@@ -498,7 +500,7 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
     </section>
 
     <!-- ===== 속성 ===== -->
-    <section id="formsView">
+    <section class="view" id="formsView">
       <div class="card" id="formCard">
         <div class="card-h"><span class="t">팀 포메이션</span><span class="sp"></span><button class="btn primary sm" id="formAddBtn">＋ 새 포메이션</button></div>
         <div class="muted" style="font-size:12px;margin-bottom:8px">기본 5개(4-3-3 등)에 더해 우리 팀 배치를 직접 만들 수 있어요. 팀 구성의 포메이션 선택에 함께 나옵니다.</div>
@@ -511,12 +513,9 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
         </div>
       </div>
     </section>
-    <section id="attrsView">
+    <section class="view" id="attrsView">
       <p class="lead">우리 팀이 쓰는 속성 어휘로 자유롭게 만드세요. 카테고리: 전술·기술·피지컬·심리·태도. 여기서 추가·수정하면 포지션·선수에 모두 반영됩니다.</p>
       <div id="attrEditor"></div>
-    </section>
-      </div><!--/critWrap-->
-
     </section>
 
     <section class="view" id="reportView">
@@ -563,6 +562,19 @@ body.fmdark #teamPitch .pitch-svg>rect:first-of-type,body.fmdark #posField .pitc
           <div class="pl-col"><div class="pl-col-h target">스카우트 대상 <span id="plCntTarget"></span></div><div id="plListTarget"></div></div>
         </div>
         <div id="plList" style="display:none"></div>
+      </div>
+      <div class="pl-modal" id="tmBulkModal" style="display:none">
+        <div class="card" style="max-width:560px;width:100%;margin:0">
+          <div class="card-h"><span class="t">명단 붙여넣기</span><span class="sp"></span><button class="btn ghost sm" id="tmBulkClose">닫기</button></div>
+          <div style="font-size:12.5px;color:var(--txt-dim);line-height:1.6;margin:2px 2px 10px">한 줄에 한 명씩. 번호·이름·포지션을 자유롭게 섞어도 됩니다. 엑셀·메모에서 복사 붙여넣기 OK.<br>예: <b>7 김민수 RW</b> · <b>김민수</b> · <b>10 이정후 CM</b></div>
+          <textarea id="tmBulkText" class="inp" spellcheck="false" style="width:100%;height:200px;resize:vertical;font-family:inherit;line-height:1.7;padding:10px 12px" placeholder="김민수&#10;7 이정후 RW&#10;박지성 CM&#10;..."></textarea>
+          <div class="row" style="margin-top:12px;align-items:center">
+            <span id="tmBulkCount" class="muted" style="font-size:12px">0명 인식</span>
+            <span class="sp"></span>
+            <button class="btn ghost" id="tmBulkCancel">취소</button>
+            <button class="btn primary" id="tmBulkGo">추가</button>
+          </div>
+        </div>
       </div>
       <div class="pl-modal" id="plEditModal" style="display:none">
       <div class="card" id="plEditCard">
@@ -955,7 +967,7 @@ function renderPosEditor(){
     const cl=document.createElement("div");cl.className="catlabel";cl.textContent=label;box.appendChild(cl);
     byCat[cat].forEach(a=>{
       const row=document.createElement("div");row.className="attr-row";
-      const star=document.createElement("button");const on=isCore(p,a.id);star.className="corestar"+(on?" on":"");star.textContent=on?"★":"☆";star.title="핵심 속성 토글";
+      const star=document.createElement("button");const on=isCore(p,a.id);star.className="corestar"+(on?" on":"");star.innerHTML=on?"<svg width='15' height='15' viewBox='0 0 24 24' fill='currentColor' style='vertical-align:-2px'><path d='M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17.9 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z'/></svg>":"<svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linejoin='round' style='vertical-align:-2px'><path d='M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17.9 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z'/></svg>";star.title="핵심 속성 토글";
       star.onclick=()=>{toggleCore(p,a.id);renderPosEditor();};
       const nmS=document.createElement("span");nmS.className="attr-name";nmS.textContent=a.name;
       const edB=document.createElement("button");edB.className="attr-edit";edB.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';edB.title="속성 이름 바로 수정";
@@ -2352,12 +2364,13 @@ window.addEventListener("message",e=>{const d=e.data||{};if(d.type==="setView"&&
 function toggleCrit(){var w=document.getElementById("critWrap");if(!w)return;var open=(w.style.display==="none");w.style.display=open?"":"none";var c=document.getElementById("critChev");if(c)c.textContent=open?"▾":"▸";}
 function setView(v){
   if(v==="gamemodel"){try{parent.postMessage({source:"scout",type:"openGameModel"},"*");}catch(_){}return;}
-  if(v==="attrs"||v==="positions")v="team";
+  if(v==="attrs")v="positions";
   document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id===v+"View"||(v==="positions"&&(s.id==="attrsView"||s.id==="formsView"))));
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   if(v==="players")renderPlayers();
   if(v==="report"){refreshReportSelects();renderTargets();renderReport();}
-  if(v==="team"){renderTeam();renderPosTabs();renderPosEditor();renderAttrs();renderForms();}
+  if(v==="team"){renderTeam();}
+  if(v==="positions"){renderPosTabs();renderPosEditor();renderAttrs();renderForms();}
 }
 
 async function init(){
@@ -2456,5 +2469,67 @@ function syncPlayerPickerLabel(){
 </script>
 <script>(function(){function wire(){var hs=document.querySelectorAll(".pl-col-h");for(var i=0;i<hs.length;i++){(function(h){if(h.__ps6)return;h.__ps6=1;var c=document.createElement("span");c.className="pscaret";c.textContent="\u25be";h.appendChild(c);h.addEventListener("click",function(e){if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.target.tagName==="BUTTON")return;h.parentElement.classList.toggle("collapsed");});})(hs[i]);}}if(document.readyState!=="loading")wire();else document.addEventListener("DOMContentLoaded",wire);setTimeout(wire,500);setTimeout(wire,1500);})();</script>
 <script>(function(){function host(){var cs=document.querySelectorAll(".card-h"),h=null;for(var i=0;i<cs.length;i++){if((cs[i].textContent||"").indexOf("\uc120\uc218 \ubaa9\ub85d")>=0)h=cs[i];}return h;}function bar(){var h=host();if(!h)return null;var btn=document.getElementById("ps3del");if(!btn){btn=document.createElement("button");btn.id="ps3del";btn.type="button";btn.className="btn danger sm";btn.style.display="none";btn.addEventListener("click",ps3bulkDel);h.appendChild(btn);}return btn;}window.ps3sync=function(){var btn=bar();if(!btn)return;var n=document.querySelectorAll(".pl-cb:checked").length;btn.textContent="\uc120\ud0dd \uc0ad\uc81c ("+n+")";btn.style.display=n?"inline-flex":"none";};window.ps3bulkDel=function(){var ids=[].map.call(document.querySelectorAll(".pl-cb:checked"),function(c){return c.getAttribute("data-cbpl");});if(!ids.length)return;if(!confirm(ids.length+"\uba85\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?"))return;data.players=data.players.filter(function(p){return ids.indexOf(p.id)<0;});try{if(typeof editingPlayer!=="undefined"&&ids.indexOf(editingPlayer)>=0&&typeof closePlayer==="function")closePlayer();}catch(e){}save();renderPlayers();try{ps3sync();}catch(e){}};function wrap(){if(window.__ps3wrap)return;if(typeof renderPlayers!=="function"){setTimeout(wrap,300);return;}window.__ps3wrap=1;var _o=renderPlayers;renderPlayers=function(){var r=_o.apply(this,arguments);try{ps3sync();}catch(e){}return r;};}wrap();setTimeout(function(){try{ps3sync();}catch(e){}},800);})();</script>
+<script>(function(){
+  /* 명단 일괄 입력 — 한 줄에 한 명, 번호/이름/포지션 자유 순서 */
+  var POS=["GK","CB","LCB","RCB","LB","RB","DM","CM","AM","CF","ST","LW","RW","LM","RM"];
+  function $(id){return document.getElementById(id);}
+  function parseLine(line){
+    var raw=(line||"").trim();
+    if(!raw||raw.charAt(0)==="#")return null;
+    var toks=raw.split(/[\t,|]+|\s+/).filter(Boolean);
+    var num="",pos="",nm=[];
+    toks.forEach(function(t){
+      var n=t.replace(/번$/,"");
+      if(num===""&&/^\d{1,3}$/.test(n)){num=n;return;}
+      var up=t.toUpperCase();
+      if(pos===""&&POS.indexOf(up)>=0){pos=up;return;}
+      nm.push(t);
+    });
+    var name=nm.join(" ");
+    if(!name&&!num&&!pos)return null;
+    return {name:name,num:num,pos:pos};
+  }
+  function parseAll(text){var out=[];(text||"").split(/\r?\n/).forEach(function(l){var p=parseLine(l);if(p)out.push(p);});return out;}
+  function posIdOf(abbr){
+    if(!abbr||typeof data==="undefined"||!data.positions)return "";
+    var ab=(typeof tmNorm==="function")?tmNorm(abbr.toUpperCase()):abbr.toUpperCase();
+    var hit=data.positions.find(function(p){return (p.name||"").toUpperCase()===ab;});
+    return hit?hit.id:"";
+  }
+  function updCount(){var el=$("tmBulkCount");if(!el)return;el.textContent=parseAll($("tmBulkText")?$("tmBulkText").value:"").length+"명 인식";}
+  function open(){var m=$("tmBulkModal");if(!m)return;m.style.display="flex";var t=$("tmBulkText");if(t){t.value="";setTimeout(function(){t.focus();},30);}updCount();}
+  function close(){var m=$("tmBulkModal");if(m)m.style.display="none";}
+  function go(){
+    var items=parseAll($("tmBulkText")?$("tmBulkText").value:"");
+    if(!items.length){if(typeof toast==="function")toast("추가할 이름이 없어요 — 한 줄에 한 명씩 입력하세요");return;}
+    var added=0;
+    items.forEach(function(p){
+      var posId=p.pos?posIdOf(p.pos):"";
+      var num=p.num;
+      if(!num&&!posId){num=String((typeof tmOurs==="function"?tmOurs().length:data.players.length)+1);}
+      data.players.push({id:uid("pl"),name:p.name,num:String(num||""),foot:"",type:"ours",posId:posId,levels:{},memo:""});
+      added++;
+    });
+    if(typeof save==="function")save();
+    if(typeof renderTeam==="function")renderTeam();
+    if(typeof redrawTeamPitch==="function")redrawTeamPitch();
+    close();
+    if(typeof toast==="function")toast(added+"명 추가됨 — 빈 칸은 채워주세요");
+  }
+  function wire(){
+    if(window.__tmBulkWired)return;
+    var b=$("tmAddBulk");if(!b){setTimeout(wire,400);return;}
+    window.__tmBulkWired=1;
+    b.onclick=open;
+    if($("tmBulkClose"))$("tmBulkClose").onclick=close;
+    if($("tmBulkCancel"))$("tmBulkCancel").onclick=close;
+    if($("tmBulkGo"))$("tmBulkGo").onclick=go;
+    if($("tmBulkText"))$("tmBulkText").addEventListener("input",updCount);
+    var m=$("tmBulkModal");if(m)m.addEventListener("click",function(e){if(e.target===m)close();});
+    document.addEventListener("keydown",function(e){if(e.key==="Escape"){var mm=$("tmBulkModal");if(mm&&mm.style.display!=="none")close();}});
+  }
+  if(document.readyState!=="loading")wire();else document.addEventListener("DOMContentLoaded",wire);
+  setTimeout(wire,600);setTimeout(wire,1600);
+})();</script>
 </body>
 </html>
