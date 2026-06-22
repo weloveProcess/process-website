@@ -48,24 +48,38 @@ async function clearStudioLocal() {
   } catch (_) {}
 }
 
+// 탭 아이콘 (app(1).html 동일) — 모바일 하단 탭바에서 표시
+const SVGI = (children) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    {children}
+  </svg>
+)
+const TAB_ICONS = {
+  board: SVGI(<><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M12 5v14M12 12h.01" /><circle cx="12" cy="12" r="2.6" /></>),
+  design: SVGI(<><path d="M9 5h6M9 5a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2M9 5V4a1 1 0 011-1h4a1 1 0 011 1v1" /><path d="M9 11h6M9 15h4" /></>),
+  process: SVGI(<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></>),
+  scout: SVGI(<><circle cx="10" cy="8" r="3.4" /><path d="M4 20c0-3.3 2.7-6 6-6 1.2 0 2.3.3 3.2 1" /><circle cx="17" cy="16" r="3.2" /><path d="M19.4 18.4L22 21" /></>),
+  note: SVGI(<><path d="M4 20l1.2-4L16.4 4.8a2 2 0 012.8 0l0 0a2 2 0 010 2.8L8 18.8 4 20z" /><path d="M14 6.5l3.5 3.5" /></>),
+  print: SVGI(<><path d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" /><rect x="6" y="14" width="12" height="7" /></>),
+}
+// 상단 탭 (app(1).html 동일 구성: 6개, 게임모델은 팀 안)
 const APPS = [
-  { id: 'board', label: '보드' },
-  { id: 'design', label: '훈련 디자인' }, // 보드의 session 뷰 재사용
+  { id: 'board', label: '작전판' },
+  { id: 'design', label: '보관함' }, // 보드의 session 뷰(드릴 보관함) 재사용
   { id: 'process', label: '일정' },
-  { id: 'scout', label: '팀' },
+  { id: 'scout', label: '팀' }, // 선수단·스카우트·게임모델
   { id: 'note', label: '노트' },
-  { id: 'gamemodel', label: '게임모델' },
-  { id: 'print', label: '출력' }, // 빈 양식 인쇄/PDF (process·scout 가 문서 생성)
+  { id: 'print', label: '양식' }, // 빈 양식 인쇄/PDF
 ]
 
 const HINTS = {
   board: '전술·세션을 그리고, 애니메이션·영상으로 내보내세요',
-  design: '작전판에 그림을 그려 드릴을 만들고, 훈련 세션을 설계하세요',
+  design: '드릴 블록을 쌓아 오늘 세션을 만들고, 링크·PDF로 전달하세요',
   process: '경기일(MD) 기준 자동 주기화 · 훈련 블록에서 작전판 첨부 가능',
-  scout: '선수 명단·평가·포지션 타깃을 한 곳에서 관리하세요',
-  note: '훈련·경기 노트를 자유롭게 기록하고 정리하세요',
+  scout: '포지션이 원하는 바와 선수의 현재를 속성별로 비교해 디렉터 보고서로 내보내세요',
+  note: '아이패드 펜슬로 자유롭게 — 줄노트·모눈·피치 배경, 이미지 내보내기',
   gamemodel: '4국면별 우리 팀의 플레이 원칙을 정리하고 문서로 내보내세요',
-  print: '월간·주간·일간·매치데이 빈 양식을 인쇄하거나 PDF로 저장하세요',
+  print: '펜으로 기입하는 빈 양식 — 미리보기 후 인쇄/PDF 저장',
 }
 
 // 첫 방문 웰컴 화면의 탭 소개
@@ -388,6 +402,40 @@ export default function StudioShell() {
   // 설정(기어) 팝업 + 백업 다운로드/복원
   const [gearOpen, setGearOpen] = useState(false)
   const bkFileRef = useRef(null)
+  // 내장 사용법 가이드 오버레이 (app(1): /guide/ 를 새 탭 대신 앱 내 패널로)
+  const [guideOpen, setGuideOpen] = useState(false)
+  // 백업 권장 배너 (app(1): 데이터 많고 오래 백업 안 했으면 상단 알림)
+  const [bkMsg, setBkMsg] = useState(null)
+  useEffect(() => {
+    const KEY = 'cs_lastbk'
+    const SN = 'cs_bksnooze'
+    const D = 864e5
+    let size = 0
+    try {
+      for (let i = 0; i < localStorage.length; i++)
+        size += (localStorage.getItem(localStorage.key(i)) || '').length
+    } catch (_) {}
+    let last = 0
+    let sn = 0
+    try {
+      last = +localStorage.getItem(KEY) || 0
+      sn = +localStorage.getItem(SN) || 0
+    } catch (_) {}
+    const now = Date.now()
+    if (size > 20000 && now - last > 7 * D && now - sn > 3 * D) {
+      const days = last ? Math.floor((now - last) / D) : 0
+      setBkMsg(
+        (last ? '마지막 백업이 ' + days + '일 전이에요' : '아직 백업한 적이 없어요') +
+          ' — 데이터는 이 기기 브라우저에만 저장돼요'
+      )
+    }
+  }, [])
+  function bkSnooze() {
+    try {
+      localStorage.setItem('cs_bksnooze', String(Date.now()))
+    } catch (_) {}
+    setBkMsg(null)
+  }
   async function backupDownload() {
     const data = {}
     try {
@@ -425,6 +473,7 @@ export default function StudioShell() {
     try {
       localStorage.setItem('cs_lastbk', String(Date.now()))
     } catch (_) {}
+    setBkMsg(null)
     setGearOpen(false)
   }
   async function backupRestore(file) {
@@ -678,10 +727,22 @@ export default function StudioShell() {
       window.csI18n?.register(win.document, win)
     } catch (_) {}
   }
-  // iframe onLoad 공통 처리: 로그인 상태 알림 + 다국어 등록
+  // iframe 내부 레이아웃 재계산(피치 등 크기 맞춤) — 임베드 후 레이아웃 정착 시점에 resize 통지
+  function nudgeResize(win) {
+    if (!win) return
+    ;[60, 250, 600].forEach((ms) =>
+      setTimeout(() => {
+        try {
+          win.dispatchEvent(new Event('resize'))
+        } catch (_) {}
+      }, ms)
+    )
+  }
+  // iframe onLoad 공통 처리: 로그인 상태 알림 + 다국어 등록 + 레이아웃 재계산
   function onFrameLoad(e) {
     broadcastAuth(e.target.contentWindow)
     registerFrameI18n(e.target.contentWindow)
+    nudgeResize(e.target.contentWindow)
   }
 
   // 앱의 DB 요청(StudioDB) 처리 → boards.js 경유 Supabase, 결과를 앱으로 회신
@@ -917,8 +978,15 @@ export default function StudioShell() {
     })()
   }, [user])
 
-  // 보드/디자인 탭 전환 시 보드 내부 뷰 지정 (design = session 뷰)
+  // 보드/디자인 탭 전환 시 보드 내부 뷰 지정 (design = session 뷰) + 레이아웃 재계산
   useEffect(() => {
+    const win = FRAME_OF[app] && {
+      board: boardRef,
+      process: processRef,
+      scout: scoutRef,
+      note: noteRef,
+      gamemodel: gamemodelRef,
+    }[FRAME_OF[app]]?.current?.contentWindow
     if (app === 'board' || app === 'design') {
       try {
         boardRef.current?.contentWindow?.postMessage(
@@ -927,6 +995,7 @@ export default function StudioShell() {
         )
       } catch (_) {}
     }
+    nudgeResize(win)
   }, [app])
 
   const bodyClass = [
@@ -950,10 +1019,11 @@ export default function StudioShell() {
             <button
               key={a.id}
               data-app={a.id}
-              className={app === a.id ? 'on' : ''}
+              className={app === a.id || (a.id === 'scout' && app === 'gamemodel') ? 'on' : ''}
               onClick={() => setApp(a.id)}
             >
-              {a.label}
+              {TAB_ICONS[a.id]}
+              <span className="tl-l">{a.label}</span>
             </button>
           ))}
         </div>
@@ -1000,7 +1070,7 @@ export default function StudioShell() {
                   className="cs-gprow-btn"
                   onClick={() => {
                     setGearOpen(false)
-                    window.open('/guide/', '_blank', 'noopener')
+                    setGuideOpen(true)
                   }}
                 >
                   📖 사용법 가이드
@@ -1079,6 +1149,20 @@ export default function StudioShell() {
         </div>
 
       </header>
+
+      {bkMsg && (
+        <div className="cs-bkbanner">
+          <span>{bkMsg}</span>
+          <span className="cs-bkbtns">
+            <button className="cs-bknow" onClick={backupDownload}>
+              지금 백업
+            </button>
+            <button className="cs-bklater" onClick={bkSnooze}>
+              나중에
+            </button>
+          </span>
+        </div>
+      )}
 
       <div className="cs-frames">
         {!boardLoaded && (app === 'board' || app === 'design') && (
@@ -1289,7 +1373,10 @@ export default function StudioShell() {
             </div>
             <button
               className="cw-guide"
-              onClick={() => window.open('/guide/', '_blank', 'noopener')}
+              onClick={() => {
+                dismissWelcome()
+                setGuideOpen(true)
+              }}
             >
               사용법 가이드 보기
             </button>
@@ -1308,6 +1395,26 @@ export default function StudioShell() {
           onImport={importShare}
           onImportDrills={importDrills}
         />
+      )}
+
+      {guideOpen && (
+        <div
+          className="cs-guideov"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setGuideOpen(false)
+          }}
+        >
+          <div className="cs-guidepanel">
+            <button
+              className="cs-guideclose"
+              aria-label="닫기"
+              onClick={() => setGuideOpen(false)}
+            >
+              ✕
+            </button>
+            <iframe title="사용법 가이드" src="/guide/" />
+          </div>
+        </div>
       )}
     </div>
   )
