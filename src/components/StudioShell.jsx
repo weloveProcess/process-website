@@ -727,10 +727,22 @@ export default function StudioShell() {
       window.csI18n?.register(win.document, win)
     } catch (_) {}
   }
-  // iframe onLoad 공통 처리: 로그인 상태 알림 + 다국어 등록
+  // iframe 내부 레이아웃 재계산(피치 등 크기 맞춤) — 임베드 후 레이아웃 정착 시점에 resize 통지
+  function nudgeResize(win) {
+    if (!win) return
+    ;[60, 250, 600].forEach((ms) =>
+      setTimeout(() => {
+        try {
+          win.dispatchEvent(new Event('resize'))
+        } catch (_) {}
+      }, ms)
+    )
+  }
+  // iframe onLoad 공통 처리: 로그인 상태 알림 + 다국어 등록 + 레이아웃 재계산
   function onFrameLoad(e) {
     broadcastAuth(e.target.contentWindow)
     registerFrameI18n(e.target.contentWindow)
+    nudgeResize(e.target.contentWindow)
   }
 
   // 앱의 DB 요청(StudioDB) 처리 → boards.js 경유 Supabase, 결과를 앱으로 회신
@@ -966,8 +978,15 @@ export default function StudioShell() {
     })()
   }, [user])
 
-  // 보드/디자인 탭 전환 시 보드 내부 뷰 지정 (design = session 뷰)
+  // 보드/디자인 탭 전환 시 보드 내부 뷰 지정 (design = session 뷰) + 레이아웃 재계산
   useEffect(() => {
+    const win = FRAME_OF[app] && {
+      board: boardRef,
+      process: processRef,
+      scout: scoutRef,
+      note: noteRef,
+      gamemodel: gamemodelRef,
+    }[FRAME_OF[app]]?.current?.contentWindow
     if (app === 'board' || app === 'design') {
       try {
         boardRef.current?.contentWindow?.postMessage(
@@ -976,6 +995,7 @@ export default function StudioShell() {
         )
       } catch (_) {}
     }
+    nudgeResize(win)
   }, [app])
 
   const bodyClass = [
